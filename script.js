@@ -8,6 +8,7 @@ let cropCanvas = null;
 let cropContext = null;
 let currentImage = null;
 let cropSelection = null;
+let quillEditor = null;
 
 // Data Storage (using localStorage)
 const storage = {
@@ -53,6 +54,15 @@ document.addEventListener('DOMContentLoaded', function() {
     setupEventListeners();
     loadFolders();
     loadNotes();
+    
+    // Initialize Quill editor if main app is already visible
+    if (!mainApp.classList.contains('hidden')) {
+        setTimeout(() => {
+            if (!quillEditor) {
+                initializeQuillEditor();
+            }
+        }, 100);
+    }
 });
 
 // Event Listeners
@@ -119,6 +129,82 @@ function setupEventListeners() {
     });
 }
 
+// Initialize Quill Editor
+function initializeQuillEditor() {
+    // Custom toolbar with all formatting options
+    const toolbarOptions = [
+        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+        [{ 'font': [] }],
+        [{ 'size': ['small', false, 'large', 'huge'] }],
+        ['bold', 'italic', 'underline', 'strike'],
+        [{ 'color': [] }, { 'background': [] }],
+        [{ 'script': 'sub'}, { 'script': 'super' }],
+        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+        [{ 'indent': '-1'}, { 'indent': '+1' }],
+        [{ 'direction': 'rtl' }],
+        [{ 'align': [] }],
+        ['blockquote', 'code-block'],
+        ['link', 'image', 'video'],
+        ['clean']
+    ];
+
+    quillEditor = new Quill('#noteContentEditor', {
+        theme: 'snow',
+        modules: {
+            toolbar: {
+                container: toolbarOptions,
+                handlers: {
+                    'image': imageHandler
+                }
+            }
+        },
+        placeholder: 'Write your note content here...',
+        formats: [
+            'header', 'font', 'size',
+            'bold', 'italic', 'underline', 'strike', 
+            'color', 'background',
+            'script', 'list', 'bullet', 'indent',
+            'direction', 'align',
+            'blockquote', 'code-block',
+            'link', 'image', 'video'
+        ]
+    });
+
+    // Custom image handler
+    function imageHandler() {
+        const input = document.createElement('input');
+        input.setAttribute('type', 'file');
+        input.setAttribute('accept', 'image/*');
+        input.click();
+
+        input.onchange = () => {
+            const file = input.files[0];
+            if (file) {
+                // Check file size (limit to 2MB for inline images)
+                if (file.size > 2 * 1024 * 1024) {
+                    alert('Image size should be less than 2MB for inline content.');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    // Get cursor position and insert image
+                    const range = quillEditor.getSelection(true);
+                    quillEditor.insertEmbed(range.index, 'image', e.target.result);
+                    quillEditor.setSelection(range.index + 1);
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+    }
+
+    // Sync content with hidden textarea
+    quillEditor.on('text-change', function() {
+        const content = quillEditor.root.innerHTML;
+        document.getElementById('noteContent').value = content;
+    });
+}
+
 // Authentication
 function handleLogin(e) {
     e.preventDefault();
@@ -159,6 +245,13 @@ function showLoginPage() {
 function showMainApp() {
     loginPage.classList.add('hidden');
     mainApp.classList.remove('hidden');
+    
+    // Initialize Quill editor after main app is shown
+    if (!quillEditor) {
+        setTimeout(() => {
+            initializeQuillEditor();
+        }, 100);
+    }
 }
 
 // Folder Management
@@ -285,8 +378,14 @@ function showNoteViewModal(noteId) {
         imageContainer.classList.add('hidden');
     }
     
-    // Set content
-    document.getElementById('viewNoteContent').textContent = note.content;
+    // Set content with rich text
+    const contentElement = document.getElementById('viewNoteContent');
+    if (note.content) {
+        // Ensure HTML content is displayed properly
+        contentElement.innerHTML = note.content;
+    } else {
+        contentElement.innerHTML = '<p style="color: #999; font-style: italic;">No content</p>';
+    }
     
     // Set meta info
     const folder = note.folderId ? storage.folders.find(f => f.id === note.folderId) : null;
@@ -310,8 +409,14 @@ function showAddNoteModal() {
     currentEditingNote = null;
     modalTitle.textContent = 'Add Note';
     document.getElementById('noteTitle').value = '';
-    document.getElementById('noteContent').value = '';
     document.getElementById('noteFolder').value = '';
+    
+    // Clear Quill editor
+    if (quillEditor) {
+        quillEditor.setContents([]);
+        document.getElementById('noteContent').value = '';
+    }
+    
     clearImagePreview();
     noteModal.classList.remove('hidden');
 }
@@ -323,8 +428,19 @@ function showEditNoteModal(noteId) {
     currentEditingNote = noteId;
     modalTitle.textContent = 'Edit Note';
     document.getElementById('noteTitle').value = note.title;
-    document.getElementById('noteContent').value = note.content;
     document.getElementById('noteFolder').value = note.folderId || '';
+    
+    // Set Quill editor content
+    if (quillEditor) {
+        if (note.content) {
+            // Set HTML content directly to Quill
+            quillEditor.root.innerHTML = note.content;
+            document.getElementById('noteContent').value = note.content;
+        } else {
+            quillEditor.setContents([]);
+            document.getElementById('noteContent').value = '';
+        }
+    }
     
     // Show image preview if exists
     if (note.image) {
@@ -339,19 +455,35 @@ function showEditNoteModal(noteId) {
 function hideNoteModal() {
     noteModal.classList.add('hidden');
     currentEditingNote = null;
+    
+    // Clear Quill editor
+    if (quillEditor) {
+        quillEditor.setContents([]);
+        document.getElementById('noteContent').value = '';
+    }
+    
     clearImagePreview();
 }
 
 function handleSaveNote(e) {
     e.preventDefault();
     const title = document.getElementById('noteTitle').value.trim();
-    const content = document.getElementById('noteContent').value.trim();
     const folderId = document.getElementById('noteFolder').value;
     const previewImg = document.getElementById('previewImg');
     const image = previewImg.src && !previewImg.src.includes('data:') ? previewImg.src : 
                  previewImg.src.startsWith('data:') ? previewImg.src : null;
     
-    if (title && content) {
+    // Get content from Quill editor
+    let content = '';
+    if (quillEditor) {
+        content = quillEditor.root.innerHTML;
+        // Update hidden textarea
+        document.getElementById('noteContent').value = content;
+    } else {
+        content = document.getElementById('noteContent').value.trim();
+    }
+    
+    if (title && content && content !== '<p><br></p>') { // Check for empty Quill content
         if (currentEditingNote) {
             // Edit existing note
             const noteIndex = storage.notes.findIndex(n => n.id === currentEditingNote);
@@ -382,6 +514,8 @@ function handleSaveNote(e) {
         storage.saveNotes();
         loadNotes();
         hideNoteModal();
+    } else {
+        alert('Please fill in both title and content.');
     }
 }
 
@@ -684,7 +818,7 @@ function loadNotes() {
     if (searchTerm) {
         filteredNotes = filteredNotes.filter(note => 
             note.title.toLowerCase().includes(searchTerm) ||
-            note.content.toLowerCase().includes(searchTerm)
+            stripHtml(note.content).toLowerCase().includes(searchTerm)
         );
     }
     
@@ -703,6 +837,7 @@ function loadNotes() {
             const folderName = folder ? folder.name : '';
             const date = new Date(note.updatedAt).toLocaleDateString();
             const hasImage = note.image ? 'has-image' : '';
+            const contentPreview = stripHtml(note.content);
             
             return `
                 <div class="note-card ${hasImage}" onclick="showNoteViewModal('${note.id}')">
@@ -716,7 +851,7 @@ function loadNotes() {
                     </div>
                     ${note.image ? `<img src="${note.image}" alt="Note image" class="note-card-image">` : ''}
                     <h3>${escapeHtml(note.title)}</h3>
-                    <div class="note-content">${escapeHtml(note.content)}</div>
+                    <div class="note-content">${escapeHtml(contentPreview)}</div>
                     <div class="note-meta">
                         <span>${date}</span>
                         ${folderName ? `<span class="note-folder">${escapeHtml(folderName)}</span>` : ''}
@@ -762,6 +897,13 @@ function escapeHtml(text) {
     return text.replace(/[&<>"']/g, m => map[m]);
 }
 
+function stripHtml(html) {
+    if (!html) return '';
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || '';
+}
+
 // Sample Data (for demo purposes)
 function createSampleData() {
     if (storage.notes.length === 0 && storage.folders.length === 0) {
@@ -771,20 +913,20 @@ function createSampleData() {
             { id: 'personal', name: 'Personal', createdAt: new Date().toISOString() }
         ];
         
-        // Create sample notes
+        // Create sample notes with rich text content
         const sampleNotes = [
             {
                 id: '1',
-                title: 'Welcome to Notes App',
-                content: 'This is your first note! You can create, edit, and organize your notes using folders. Use the search feature to quickly find what you\'re looking for.',
+                title: 'Welcome to Rich Notes App',
+                content: '<h2>Welcome to the Rich Text Notes App!</h2><p>This note demonstrates the <strong>rich text editing</strong> capabilities:</p><ul><li><strong>Bold text</strong> and <em>italic text</em></li><li><u>Underlined text</u> and <span style="color: rgb(230, 0, 0);">colored text</span></li><li>Different <span style="font-size: 18px;">font sizes</span></li><li>Various headers and formatting options</li></ul><blockquote>You can also add blockquotes for emphasis!</blockquote><p>Try editing this note to explore all the formatting features.</p>',
                 folderId: null,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
             },
             {
                 id: '2',
-                title: 'Meeting Notes',
-                content: 'Quarterly review meeting scheduled for next week. Prepare presentation slides and gather team feedback.',
+                title: 'Meeting Notes - Q4 Review',
+                content: '<h3>Quarterly Review Meeting</h3><p><strong>Date:</strong> Next Week</p><p><strong>Agenda:</strong></p><ol><li>Review Q3 performance metrics</li><li>Discuss Q4 goals and objectives</li><li>Team feedback session</li><li>Budget allocation for next quarter</li></ol><p><span style="background-color: rgb(255, 255, 0);">Action Items:</span></p><ul><li>Prepare presentation slides</li><li>Gather team feedback</li><li>Schedule follow-up meetings</li></ul>',
                 folderId: 'work',
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()

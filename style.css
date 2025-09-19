@@ -527,8 +527,322 @@ body {
     font-size: 1.1rem;
     line-height: 1.8;
     color: #333;
-    white-space: pre-wrap;
     word-wrap: break-word;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+.note-view-content-text * {
+    max-width: 100%;
+}
+
+.note-view-content-text img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 5px;
+    margin: 0.5rem 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.note-view-content-text h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 1.5rem 0 1rem 0;
+    color: #333;
+    line-height: 1.2;
+}
+
+.note-view-content-text h2 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin: 1.25rem 0 0.75rem 0;
+    color: #333;
+    line-height: 1.3;
+}
+
+.note-view-content-text h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 1rem 0 0.5rem 0;
+    color: #333;
+    line-height: 1.4;
+}
+
+.note-view-content-text h4 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0.75rem 0 0.5rem 0;
+    color: #333;
+}
+
+.note-view-content-text h5 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0.75rem 0 0.5rem 0;
+    color: #333;
+}
+
+.note-view-content-text h6 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0.75rem 0 0.5rem 0;
+    color: #333;
+}
+
+.note-view-content-text p {
+    margin: 0.75rem 0;
+    line-height: 1.6;
+}
+
+.note-view-content-text strong {
+    font-weight: 700;
+}
+
+.note-view-content-text em {
+    font-style: italic;
+}
+
+.note-view-content-text u {
+    text-decoration: underline;
+}
+
+.note-view-content-text s {
+    text-decoration: line-through;
+}
+
+.note-view-content-text ul {
+    margin: 0.75rem 0;
+    padding-left: 2rem;
+    list-style-type: disc;
+}
+
+.note-view-content-text ol {
+    margin: 0.75rem 0;
+    padding-left: 2rem;
+    list-style-type: decimal;
+}
+
+.note-view-content-text li {
+    margin: 0.25rem 0;
+    line-height: 1.6;
+}
+
+.note-view-content-text blockquote {
+    border-left: 4px solid #667eea;
+    padding-left: 1rem;
+    margin: 1rem 0;
+    font-style: italic;
+    color: #666;
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 0 5px 5px 0;
+}
+
+.note-view-content-text code {
+    background: #f4f4f4;
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    font-family: 'Courier New', Monaco, 'Lucida Console', monospace;
+    font-size: 0.9em;
+    color: #d63384;
+}
+
+.note-view-content-text pre {
+    background: #f4f4f4;
+    padding: 1rem;
+    border-radius: 5px;
+    overflow-x: auto;
+    margin: 1rem 0;
+    border: 1px solid #e0e0e0;
+}
+
+.note-view-content-text pre code {
+    background: none;
+    padding: 0;
+    color: #333;
+}
+
+.note-view-content-text a {
+    color: #667eea;
+    text-decoration: none;
+}
+
+.note-view-content-text a:hover {
+    text-decoration: underline;
+}
+
+/* Quill specific classes */
+.note-view-content-text .ql-size-small {
+    font-size: 0.75em;
+}
+
+.note-view-content-text .ql-size-large {
+    font-size: 1.5em;
+}
+
+.note-view-content-text .ql-size-huge {
+    font-size: 2.5em;
+}
+
+.note-view-content-text .ql-font-serif {
+    font-family: Georgia, Times, serif;
+}
+
+.note-view-content-text .ql-font-monospace {
+    font-family: Monaco, 'Courier New', monospace;
+}
+
+.note-view-content-text .ql-align-center {
+    text-align: center;
+}
+
+.note-view-content-text .ql-align-right {
+    text-align: right;
+}
+
+.note-view-content-text .ql-align-justify {
+    text-align: justify;
+}
+
+.note-view-content-text .ql-direction-rtl {
+    direction: rtl;
+    text-align: right;
+}
+
+.note-view-content-text .ql-indent-1 {
+    padding-left: 3em;
+}
+
+.note-view-content-text .ql-indent-2 {
+    padding-left: 6em;
+}
+
+.note-view-content-text .ql-indent-3 {
+    padding-left: 9em;
+}
+
+.note-view-content-text .ql-indent-4 {
+    padding-left: 12em;
+}
+
+.note-view-content-text .ql-indent-5 {
+    padding-left: 15em;
+}
+
+.note-view-content-text .ql-indent-6 {
+    padding-left: 18em;
+}
+
+.note-view-content-text .ql-indent-7 {
+    padding-left: 21em;
+}
+
+.note-view-content-text .ql-indent-8 {
+    padding-left: 24em;
+}
+
+.note-view-content-text sub {
+    vertical-align: sub;
+    font-size: smaller;
+}
+
+.note-view-content-text sup {
+    vertical-align: super;
+    font-size: smaller;
+}
+
+/* Rich Text Editor Styles */
+.note-editor {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background: white;
+    min-height: 200px;
+}
+
+.note-editor .ql-toolbar {
+    border-radius: 5px 5px 0 0;
+    border-bottom: 1px solid #ddd;
+    background: #f8f9fa;
+}
+
+.note-editor .ql-container {
+    border-radius: 0 0 5px 5px;
+    min-height: 150px;
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+.note-editor .ql-editor {
+    min-height: 150px;
+    padding: 1rem;
+}
+
+.note-editor .ql-editor.ql-blank::before {
+    color: #999;
+    font-style: italic;
+}
+
+.note-editor .ql-editor img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 5px;
+    margin: 0.5rem 0;
+}
+
+/* Quill Toolbar Customization */
+.ql-snow .ql-tooltip {
+    z-index: 1001;
+}
+
+.ql-snow .ql-picker.ql-size .ql-picker-label::before,
+.ql-snow .ql-picker.ql-size .ql-picker-item::before {
+    content: '14px';
+}
+
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value="small"]::before,
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value="small"]::before {
+    content: '10px';
+}
+
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value="large"]::before,
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value="large"]::before {
+    content: '18px';
+}
+
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value="huge"]::before,
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value="huge"]::before {
+    content: '32px';
+}
+
+/* Note Card Content with Rich Text */
+.note-content {
+    color: #666;
+    margin-bottom: 1rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    line-clamp: 3;
+    overflow: hidden;
+}
+
+.note-content * {
+    margin: 0;
+    padding: 0;
+}
+
+.note-content p {
+    margin: 0.25rem 0;
+}
+
+.note-content img {
+    display: none; /* Hide images in card preview */
+}
+
+.note-content strong {
+    font-weight: 600;
+}
+
+.note-content em {
+    font-style: italic;
 }
 
 .note-view-meta {
@@ -739,6 +1053,15 @@ body {
 
     .view-options {
         align-self: flex-end;
+    }
+
+    /* Rich Text Editor Mobile */
+    .note-editor .ql-toolbar {
+        flex-wrap: wrap;
+    }
+
+    .note-editor .ql-formats {
+        margin: 0.2rem 0;
     }
 }
 
