@@ -589,6 +589,7 @@ body {
     to { opacity: 1; }
 }
 
+/* Standard modal content */
 .modal-content {
     background: var(--surface);
     border-radius: var(--radius-xl);
@@ -603,6 +604,18 @@ body {
     flex-direction: column;
 }
 
+/* Wider content for note editing */
+#noteModal .modal-content {
+    max-width: 1400px;
+    width: 95%;
+}
+
+/* Medium width for note preview */
+#noteViewModal .modal-content {
+    max-width: 800px;
+    width: 90%;
+}
+
 @keyframes modalSlideIn {
     from { 
         transform: translateY(20px) scale(0.95);
@@ -612,17 +625,6 @@ body {
         transform: translateY(0) scale(1);
         opacity: 1;
     }
-}
-
-/* Wider content for note editing */
-.note-view-content {
-    max-width: 1200px;
-    width: 98%;
-}
-
-/* Standard modal content for other modals */
-.modal-content:not(.note-view-content) {
-    max-width: 500px;
 }
 
 .crop-modal-content {
@@ -701,11 +703,18 @@ body {
     flex: 1;
 }
 
-/* Wider padding for note editing modal */
-.note-view-content .modal-body {
-    padding: var(--space-lg) var(--space-2xl);
+/* Enhanced padding for note editing modal */
+#noteModal .modal-body {
+    padding: var(--space-lg) var(--space-3xl);
     overflow-y: auto;
     max-height: calc(90vh - 120px); /* Account for header height */
+}
+
+/* Standard padding for note preview modal */
+#noteViewModal .modal-body {
+    padding: var(--space-xl) var(--space-2xl);
+    overflow-y: auto;
+    max-height: calc(90vh - 120px);
 }
 
 /* Note View Styles */
@@ -715,6 +724,14 @@ body {
     color: var(--text-primary);
     word-wrap: break-word;
     font-family: var(--font-family);
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+/* Limit line length for better readability in preview */
+#noteViewModal .note-view-content-text {
+    max-width: 700px;
+    margin: 0 auto;
 }
 
 .note-view-content-text * {
@@ -1830,9 +1847,28 @@ body {
         grid-template-columns: 1fr;
     }
 
-    /* Mobile-friendly note editor */
-    .note-view-content {
+    /* Mobile-friendly modals */
+    #noteModal .modal-content {
         width: 98% !important;
+        max-width: none !important;
+    }
+
+    #noteViewModal .modal-content {
+        width: 95% !important;
+        max-width: none !important;
+    }
+
+    /* Mobile modal body padding */
+    #noteModal .modal-body {
+        padding: var(--space-md) var(--space-lg) !important;
+    }
+
+    #noteViewModal .modal-body {
+        padding: var(--space-lg) var(--space-lg) !important;
+    }
+
+    /* Mobile note preview content */
+    #noteViewModal .note-view-content-text {
         max-width: none !important;
     }
 
