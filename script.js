@@ -9,6 +9,8 @@ let cropContext = null;
 let currentImage = null;
 let cropSelection = null;
 let quillEditor = null;
+let hasUnsavedChanges = false;
+let originalNoteData = null;
 
 // Data Storage (using localStorage)
 const storage = {
@@ -97,9 +99,15 @@ function setupEventListeners() {
         hideNoteViewModal();
     });
     
-    // Modal Close - Note Edit
-    document.getElementById('closeModal').addEventListener('click', hideNoteModal);
-    document.getElementById('cancelBtn').addEventListener('click', hideNoteModal);
+    // Modal Close - Note Edit with confirmation
+    document.getElementById('closeModal').addEventListener('click', (e) => {
+        e.preventDefault();
+        confirmCloseModal();
+    });
+    document.getElementById('cancelBtn').addEventListener('click', (e) => {
+        e.preventDefault();
+        confirmCloseModal();
+    });
     
     // Modal Close - Folder
     document.getElementById('closeFolderModal').addEventListener('click', hideFolderModal);
@@ -108,6 +116,17 @@ function setupEventListeners() {
     // Image Upload
     document.getElementById('noteImageInput').addEventListener('change', handleImageUpload);
     document.getElementById('removeImage').addEventListener('click', removeImage);
+    
+    // Track changes in form inputs
+    document.getElementById('noteTitle').addEventListener('input', () => {
+        hasUnsavedChanges = true;
+    });
+    document.getElementById('noteFolder').addEventListener('change', () => {
+        hasUnsavedChanges = true;
+    });
+    document.getElementById('noteImageInput').addEventListener('change', () => {
+        hasUnsavedChanges = true;
+    });
     
     // Crop Modal
     document.getElementById('closeCropModal').addEventListener('click', hideCropModal);
@@ -119,7 +138,10 @@ function setupEventListeners() {
         if (e.target === noteViewModal) hideNoteViewModal();
     });
     noteModal.addEventListener('click', (e) => {
-        if (e.target === noteModal) hideNoteModal();
+        if (e.target === noteModal) {
+            e.preventDefault();
+            confirmCloseModal();
+        }
     });
     folderModal.addEventListener('click', (e) => {
         if (e.target === folderModal) hideFolderModal();
@@ -131,7 +153,7 @@ function setupEventListeners() {
 
 // Initialize Quill Editor
 function initializeQuillEditor() {
-    // Custom toolbar with all formatting options
+    // Custom toolbar with professional grouping
     const toolbarOptions = [
         [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
         [{ 'font': [] }],
@@ -154,11 +176,12 @@ function initializeQuillEditor() {
             toolbar: {
                 container: toolbarOptions,
                 handlers: {
-                    'image': imageHandler
+                    'image': imageHandler,
+                    'video': videoHandler
                 }
             }
         },
-        placeholder: 'Write your note content here...',
+        placeholder: 'Start writing your note... Use the toolbar above to format your content beautifully.',
         formats: [
             'header', 'font', 'size',
             'bold', 'italic', 'underline', 'strike', 
@@ -180,9 +203,9 @@ function initializeQuillEditor() {
         input.onchange = () => {
             const file = input.files[0];
             if (file) {
-                // Check file size (limit to 2MB for inline images)
-                if (file.size > 2 * 1024 * 1024) {
-                    alert('Image size should be less than 2MB for inline content.');
+                // Check file size (limit to 5MB for inline images)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('Image size should be less than 5MB for inline content.');
                     return;
                 }
 
@@ -198,10 +221,113 @@ function initializeQuillEditor() {
         };
     }
 
-    // Sync content with hidden textarea
+    // Custom video handler for better video embedding
+    function videoHandler() {
+        const range = quillEditor.getSelection();
+        if (range) {
+            // Create a custom prompt dialog that won't be cut off
+            const videoDialog = createVideoDialog();
+            document.body.appendChild(videoDialog);
+            
+            const urlInput = videoDialog.querySelector('#videoUrlInput');
+            const insertBtn = videoDialog.querySelector('#insertVideoBtn');
+            const cancelBtn = videoDialog.querySelector('#cancelVideoBtn');
+            
+            urlInput.focus();
+            
+            insertBtn.onclick = () => {
+                const url = urlInput.value.trim();
+                if (url) {
+                    let embedUrl = convertToEmbedUrl(url);
+                    if (embedUrl) {
+                        quillEditor.insertEmbed(range.index, 'video', embedUrl);
+                        quillEditor.setSelection(range.index + 1);
+                    } else {
+                        alert('Please enter a valid YouTube, Vimeo, or direct video URL.');
+                        return;
+                    }
+                }
+                document.body.removeChild(videoDialog);
+            };
+            
+            cancelBtn.onclick = () => {
+                document.body.removeChild(videoDialog);
+            };
+            
+            // Handle Enter key
+            urlInput.onkeydown = (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    insertBtn.click();
+                }
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    cancelBtn.click();
+                }
+            };
+        }
+    }
+
+    // Create custom video dialog
+    function createVideoDialog() {
+        const dialog = document.createElement('div');
+        dialog.className = 'video-embed-dialog';
+        dialog.innerHTML = `
+            <div class="video-dialog-content">
+                <div class="video-dialog-header">
+                    <h3>Embed Video</h3>
+                </div>
+                <div class="video-dialog-body">
+                    <label for="videoUrlInput">Video URL:</label>
+                    <input type="text" id="videoUrlInput" placeholder="Paste YouTube, Vimeo, or direct video URL here..." />
+                    <p class="video-help">Supported: YouTube, Vimeo, and direct video links (.mp4, .webm, .ogg)</p>
+                </div>
+                <div class="video-dialog-actions">
+                    <button type="button" id="cancelVideoBtn" class="btn-secondary">Cancel</button>
+                    <button type="button" id="insertVideoBtn" class="btn-primary">Insert Video</button>
+                </div>
+            </div>
+        `;
+        return dialog;
+    }
+
+    // Convert various video URLs to embed format
+    function convertToEmbedUrl(url) {
+        // YouTube
+        const youtubeRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+        const youtubeMatch = url.match(youtubeRegex);
+        if (youtubeMatch) {
+            return `https://www.youtube.com/embed/${youtubeMatch[1]}?rel=0&modestbranding=1`;
+        }
+
+        // Vimeo
+        const vimeoRegex = /(?:https?:\/\/)?(?:www\.)?vimeo\.com\/(\d+)/;
+        const vimeoMatch = url.match(vimeoRegex);
+        if (vimeoMatch) {
+            return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+        }
+
+        // Direct video files
+        const videoExtensions = /\.(mp4|webm|ogg)(\?.*)?$/i;
+        if (videoExtensions.test(url)) {
+            return url;
+        }
+
+        // If it's already an embed URL, return as is
+        if (url.includes('embed') || url.includes('player.vimeo.com')) {
+            return url;
+        }
+
+        return null;
+    }
+
+    // Sync content with hidden textarea and track changes
     quillEditor.on('text-change', function() {
         const content = quillEditor.root.innerHTML;
         document.getElementById('noteContent').value = content;
+        
+        // Mark as having unsaved changes
+        hasUnsavedChanges = true;
     });
 }
 
@@ -368,15 +494,9 @@ function showNoteViewModal(noteId) {
     // Set title
     document.getElementById('viewNoteTitle').textContent = note.title;
     
-    // Set image
+    // Hide image container - images are only shown on note cards, not in preview
     const imageContainer = document.getElementById('viewNoteImage');
-    const imageElement = document.getElementById('viewNoteImg');
-    if (note.image) {
-        imageElement.src = note.image;
-        imageContainer.classList.remove('hidden');
-    } else {
-        imageContainer.classList.add('hidden');
-    }
+    imageContainer.classList.add('hidden');
     
     // Set content with rich text
     const contentElement = document.getElementById('viewNoteContent');
@@ -407,6 +527,9 @@ function hideNoteViewModal() {
 
 function showAddNoteModal() {
     currentEditingNote = null;
+    hasUnsavedChanges = false;
+    originalNoteData = null;
+    
     modalTitle.textContent = 'Add Note';
     document.getElementById('noteTitle').value = '';
     document.getElementById('noteFolder').value = '';
@@ -426,6 +549,16 @@ function showEditNoteModal(noteId) {
     if (!note) return;
     
     currentEditingNote = noteId;
+    hasUnsavedChanges = false;
+    
+    // Store original data for comparison
+    originalNoteData = {
+        title: note.title,
+        content: note.content,
+        folderId: note.folderId || '',
+        image: note.image
+    };
+    
     modalTitle.textContent = 'Edit Note';
     document.getElementById('noteTitle').value = note.title;
     document.getElementById('noteFolder').value = note.folderId || '';
@@ -452,9 +585,42 @@ function showEditNoteModal(noteId) {
     noteModal.classList.remove('hidden');
 }
 
+// Confirm before closing modal with unsaved changes
+function confirmCloseModal() {
+    if (hasUnsavedChanges) {
+        const userChoice = confirm(
+            'You have unsaved changes. Are you sure you want to close without saving?\n\n' +
+            'Click "OK" to discard changes and close.\n' +
+            'Click "Cancel" to continue editing.'
+        );
+        
+        if (userChoice) {
+            // User confirmed, discard changes and close
+            forceCloseModal();
+        }
+        // If user clicked cancel, do nothing (stay in edit mode)
+    } else {
+        // No unsaved changes, close normally
+        hideNoteModal();
+    }
+}
+
+// Force close modal without confirmation
+function forceCloseModal() {
+    hasUnsavedChanges = false;
+    originalNoteData = null;
+    hideNoteModal();
+}
+
 function hideNoteModal() {
     noteModal.classList.add('hidden');
     currentEditingNote = null;
+    hasUnsavedChanges = false;
+    originalNoteData = null;
+    
+    // Clear form
+    noteForm.reset();
+    modalTitle.textContent = 'Add Note';
     
     // Clear Quill editor
     if (quillEditor) {
@@ -513,6 +679,11 @@ function handleSaveNote(e) {
         
         storage.saveNotes();
         loadNotes();
+        
+        // Reset change tracking since we successfully saved
+        hasUnsavedChanges = false;
+        originalNoteData = null;
+        
         hideNoteModal();
     } else {
         alert('Please fill in both title and content.');
@@ -836,8 +1007,11 @@ function loadNotes() {
             const folder = note.folderId ? storage.folders.find(f => f.id === note.folderId) : null;
             const folderName = folder ? folder.name : '';
             const date = new Date(note.updatedAt).toLocaleDateString();
-            const hasImage = note.image ? 'has-image' : '';
+            const hasImage = 'has-image'; // Always show image (either custom or default)
             const contentPreview = stripHtml(note.content);
+            
+            // Use custom image if available, otherwise use default from Unsplash
+            const imageUrl = note.image || getDefaultImage(note.id);
             
             return `
                 <div class="note-card ${hasImage}" onclick="showNoteViewModal('${note.id}')">
@@ -849,7 +1023,7 @@ function loadNotes() {
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
-                    ${note.image ? `<img src="${note.image}" alt="Note image" class="note-card-image">` : ''}
+                    <img src="${imageUrl}" alt="Note image" class="note-card-image">
                     <h3>${escapeHtml(note.title)}</h3>
                     <div class="note-content">${escapeHtml(contentPreview)}</div>
                     <div class="note-meta">
@@ -883,6 +1057,31 @@ function setView(view) {
         listViewBtn.classList.add('active');
         notesList.className = 'notes-list';
     }
+}
+
+// Generate default image from Unsplash for notes without custom images
+function getDefaultImage(noteId) {
+    // Array of beautiful, professional Unsplash images for notes
+    const defaultImages = [
+        'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=500&fit=crop&auto=format', // Mountain landscape
+        'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&h=500&fit=crop&auto=format', // Forest path  
+        'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=500&fit=crop&auto=format', // Ocean waves
+        'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&h=500&fit=crop&auto=format', // Sunset sky
+        'https://images.unsplash.com/photo-1473773508845-188df298d2d1?w=800&h=500&fit=crop&auto=format', // Desert landscape
+        'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&h=500&fit=crop&auto=format', // City skyline
+        'https://images.unsplash.com/photo-1497032628192-86f99bcd76bc?w=800&h=500&fit=crop&auto=format', // Coffee workspace
+        'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=800&h=500&fit=crop&auto=format', // Books and notes
+        'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=500&fit=crop&auto=format', // Abstract gradient
+        'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=800&h=500&fit=crop&auto=format'  // Tech workspace
+    ];
+    
+    // Use note ID to consistently assign the same image to the same note
+    const imageIndex = Math.abs(noteId.split('').reduce((a, b) => {
+        a = ((a << 5) - a) + b.charCodeAt(0);
+        return a & a;
+    }, 0)) % defaultImages.length;
+    
+    return defaultImages[imageIndex];
 }
 
 // Utility Functions

@@ -365,16 +365,18 @@ body {
 
 .note-actions {
     position: absolute;
-    top: 1rem;
-    right: 1rem;
+    top: 8px;
+    right: 8px;
     display: flex;
     gap: 0.5rem;
     opacity: 0;
     transition: opacity 0.3s ease;
-    background: rgba(255, 255, 255, 0.9);
-    padding: 0.25rem;
-    border-radius: 5px;
-    backdrop-filter: blur(5px);
+    background: rgba(255, 255, 255, 0.95);
+    padding: 6px;
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .note-card:hover .note-actions {
@@ -382,8 +384,8 @@ body {
 }
 
 .note-card.has-image .note-actions {
-    top: 1rem;
-    background: rgba(0, 0, 0, 0.7);
+    top: 8px;
+    background: rgba(0, 0, 0, 0.8);
 }
 
 .note-card.has-image .note-actions .note-action-btn {
@@ -391,27 +393,43 @@ body {
 }
 
 .note-card.has-image .note-actions .note-action-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.25);
 }
 
 .note-action-btn {
-    padding: 0.25rem 0.5rem;
+    padding: 8px 10px;
     background: none;
     border: none;
-    border-radius: 3px;
+    border-radius: 6px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    min-height: 32px;
 }
 
 .note-action-btn:hover {
-    background: #f8f9fa;
+    background: rgba(102, 126, 234, 0.1);
+    transform: scale(1.05);
 }
 
 .note-action-btn.edit {
     color: #28a745;
 }
 
+.note-action-btn.edit:hover {
+    background: rgba(40, 167, 69, 0.1);
+    color: #28a745;
+}
+
 .note-action-btn.delete {
+    color: #dc3545;
+}
+
+.note-action-btn.delete:hover {
+    background: rgba(220, 53, 69, 0.1);
     color: #dc3545;
 }
 
@@ -752,65 +770,291 @@ body {
 
 /* Rich Text Editor Styles */
 .note-editor {
-    border: 1px solid #ddd;
-    border-radius: 5px;
+    border: 1px solid #e1e5e9;
+    border-radius: 8px;
     background: white;
-    min-height: 200px;
+    min-height: 300px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.note-editor:focus-within {
+    border-color: #667eea;
+    box-shadow: 0 4px 8px rgba(102, 126, 234, 0.15);
 }
 
 .note-editor .ql-toolbar {
-    border-radius: 5px 5px 0 0;
-    border-bottom: 1px solid #ddd;
-    background: #f8f9fa;
+    border-radius: 8px 8px 0 0;
+    border-bottom: 1px solid #e1e5e9;
+    background: linear-gradient(135deg, #fafbfc 0%, #f6f7f9 100%);
+    padding: 12px 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .note-editor .ql-container {
-    border-radius: 0 0 5px 5px;
-    min-height: 150px;
+    border-radius: 0 0 8px 8px;
+    min-height: 200px;
     font-size: 1rem;
     line-height: 1.6;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 }
 
 .note-editor .ql-editor {
-    min-height: 150px;
-    padding: 1rem;
+    min-height: 200px;
+    padding: 20px 24px;
+    color: #2c3e50;
+    font-size: 15px;
+    line-height: 1.7;
 }
 
 .note-editor .ql-editor.ql-blank::before {
-    color: #999;
+    color: #95a5a6;
     font-style: italic;
+    opacity: 0.7;
+    font-size: 15px;
 }
 
 .note-editor .ql-editor img {
     max-width: 100%;
     height: auto;
-    border-radius: 5px;
-    margin: 0.5rem 0;
+    border-radius: 8px;
+    margin: 1rem 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease;
 }
 
-/* Quill Toolbar Customization */
+.note-editor .ql-editor img:hover {
+    transform: scale(1.02);
+}
+
+.note-editor .ql-editor iframe {
+    max-width: 100%;
+    width: 100%;
+    border-radius: 8px;
+    margin: 1rem 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Professional Quill Toolbar Styling */
+.ql-snow .ql-toolbar .ql-formats {
+    margin-right: 12px;
+}
+
+.ql-snow .ql-toolbar button {
+    height: 32px;
+    width: 32px;
+    border-radius: 6px;
+    margin: 2px;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.ql-snow .ql-toolbar button:hover {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+}
+
+.ql-snow .ql-toolbar button.ql-active {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+    box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+}
+
+.ql-snow .ql-picker {
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.ql-snow .ql-picker:hover {
+    background: rgba(102, 126, 234, 0.1);
+}
+
+.ql-snow .ql-picker-label {
+    border-radius: 6px;
+    padding: 6px 8px;
+}
+
+.ql-snow .ql-picker-options {
+    background: white;
+    border: 1px solid #e1e5e9;
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    padding: 8px 0;
+    margin-top: 4px;
+}
+
+.ql-snow .ql-picker-item {
+    padding: 8px 12px;
+    transition: all 0.2s ease;
+}
+
+.ql-snow .ql-picker-item:hover {
+    background: rgba(102, 126, 234, 0.1);
+    color: #667eea;
+}
+
+.ql-snow .ql-picker-item.ql-selected {
+    background: #667eea;
+    color: white;
+}
+
+/* Enhanced Color Picker */
+.ql-snow .ql-color-picker .ql-picker-options {
+    width: 168px;
+    padding: 12px;
+}
+
+.ql-snow .ql-color-picker .ql-picker-item {
+    height: 20px;
+    width: 20px;
+    margin: 2px;
+    border-radius: 4px;
+    border: 2px solid transparent;
+}
+
+.ql-snow .ql-color-picker .ql-picker-item:hover,
+.ql-snow .ql-color-picker .ql-picker-item.ql-selected {
+    border-color: #333;
+    transform: scale(1.1);
+}
+
+/* Quill Tooltip Improvements */
 .ql-snow .ql-tooltip {
-    z-index: 1001;
+    z-index: 1100;
+    background: white;
+    border: 1px solid #e1e5e9;
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    padding: 12px 16px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    min-width: 300px;
+    max-width: 450px;
+    transform: translateX(-50%);
+    left: 50% !important;
 }
 
+.ql-snow .ql-tooltip::before {
+    border-bottom-color: white;
+    margin-left: -6px;
+    left: 50%;
+}
+
+.ql-snow .ql-tooltip input[type=text] {
+    border: 1px solid #e1e5e9;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 14px;
+    width: 100%;
+    margin: 6px 0;
+    transition: border-color 0.3s ease;
+}
+
+.ql-snow .ql-tooltip input[type=text]:focus {
+    border-color: #667eea;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+}
+
+.ql-snow .ql-tooltip .ql-action {
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    margin-left: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.ql-snow .ql-tooltip .ql-action:hover {
+    background: #5a6fd8;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+}
+
+.ql-snow .ql-tooltip .ql-remove {
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    margin-left: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.ql-snow .ql-tooltip .ql-remove:hover {
+    background: #c82333;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+}
+
+/* Size Picker Labels */
 .ql-snow .ql-picker.ql-size .ql-picker-label::before,
 .ql-snow .ql-picker.ql-size .ql-picker-item::before {
-    content: '14px';
+    content: 'Normal';
 }
 
 .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="small"]::before,
 .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="small"]::before {
-    content: '10px';
+    content: 'Small';
 }
 
 .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="large"]::before,
 .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="large"]::before {
-    content: '18px';
+    content: 'Large';
 }
 
 .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="huge"]::before,
 .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="huge"]::before {
-    content: '32px';
+    content: 'Huge';
+}
+
+/* Header Picker Labels */
+.ql-snow .ql-picker.ql-header .ql-picker-label::before,
+.ql-snow .ql-picker.ql-header .ql-picker-item::before {
+    content: 'Normal';
+}
+
+.ql-snow .ql-picker.ql-header .ql-picker-label[data-value="1"]::before,
+.ql-snow .ql-picker.ql-header .ql-picker-item[data-value="1"]::before {
+    content: 'Heading 1';
+}
+
+.ql-snow .ql-picker.ql-header .ql-picker-label[data-value="2"]::before,
+.ql-snow .ql-picker.ql-header .ql-picker-item[data-value="2"]::before {
+    content: 'Heading 2';
+}
+
+.ql-snow .ql-picker.ql-header .ql-picker-label[data-value="3"]::before,
+.ql-snow .ql-picker.ql-header .ql-picker-item[data-value="3"]::before {
+    content: 'Heading 3';
+}
+
+.note-view-content-text iframe {
+    max-width: 100%;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16/9;
+    border-radius: 8px;
+    margin: 1rem 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border: none;
+}
+
+.note-view-content-text video {
+    max-width: 100%;
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin: 1rem 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 /* Note Card Content with Rich Text */
@@ -926,11 +1170,19 @@ body {
     object-position: center;
     border-radius: 8px 8px 0 0;
     margin: -1.5rem -1.5rem 1rem -1.5rem;
+    transition: transform 0.3s ease;
+    position: relative;
+    z-index: 1;
+}
+
+.note-card-image:hover {
+    transform: scale(1.02);
 }
 
 .note-card.has-image {
     padding-top: 0;
     overflow: hidden;
+    position: relative;
 }
 
 /* Crop Modal Styles */
@@ -1009,6 +1261,128 @@ body {
     background: #5a6268;
 }
 
+/* Video Dialog Styles */
+.video-embed-dialog {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    backdrop-filter: blur(4px);
+}
+
+.video-dialog-content {
+    background: white;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 16px 64px rgba(0, 0, 0, 0.2);
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.video-dialog-header {
+    padding: 20px 24px 16px 24px;
+    border-bottom: 1px solid #e1e5e9;
+}
+
+.video-dialog-header h3 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.video-dialog-body {
+    padding: 20px 24px;
+}
+
+.video-dialog-body label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #34495e;
+    font-size: 14px;
+}
+
+.video-dialog-body input[type="text"] {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e1e5e9;
+    border-radius: 8px;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+.video-dialog-body input[type="text"]:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.video-help {
+    margin: 12px 0 0 0;
+    font-size: 13px;
+    color: #7f8c8d;
+    line-height: 1.4;
+}
+
+.video-dialog-actions {
+    padding: 16px 24px 24px 24px;
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.video-dialog-actions .btn-secondary,
+.video-dialog-actions .btn-primary {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 7px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 80px;
+}
+
+.video-dialog-actions .btn-secondary {
+    background: #95a5a6;
+    color: white;
+}
+
+.video-dialog-actions .btn-secondary:hover {
+    background: #7f8c8d;
+    transform: translateY(-1px);
+}
+
+.video-dialog-actions .btn-primary {
+    background: #667eea;
+    color: white;
+}
+
+.video-dialog-actions .btn-primary:hover {
+    background: #5a6fd8;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .header {
@@ -1062,6 +1436,28 @@ body {
 
     .note-editor .ql-formats {
         margin: 0.2rem 0;
+    }
+
+    /* Video Dialog Mobile */
+    .video-dialog-content {
+        width: 95%;
+        margin: 1rem;
+    }
+
+    .video-dialog-header,
+    .video-dialog-body,
+    .video-dialog-actions {
+        padding: 16px 20px;
+    }
+
+    .video-dialog-actions {
+        flex-direction: column;
+    }
+
+    .video-dialog-actions .btn-secondary,
+    .video-dialog-actions .btn-primary {
+        width: 100%;
+        margin: 0;
     }
 }
 
@@ -1119,11 +1515,64 @@ body {
         height: 100px;
     }
 
+    /* Action buttons mobile improvements */
+    .note-actions {
+        opacity: 1; /* Always visible on mobile */
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        background: rgba(0, 0, 0, 0.8);
+    }
+
+    .note-actions .note-action-btn {
+        color: white;
+        min-width: 36px;
+        min-height: 36px;
+        padding: 10px;
+    }
+
+    .note-actions .note-action-btn:hover {
+        background: rgba(255, 255, 255, 0.25);
+    }
+
     .crop-container {
         min-height: 200px;
     }
 
     #cropCanvas {
         max-height: 250px;
+    }
+
+    /* Video Dialog Mobile Small */
+    .video-dialog-content {
+        width: 98%;
+        margin: 0.5rem;
+    }
+
+    .video-dialog-header h3 {
+        font-size: 1.1rem;
+    }
+
+    .video-dialog-body input[type="text"] {
+        font-size: 16px; /* Prevent zoom on iOS */
+    }
+
+    .video-help {
+        font-size: 12px;
+    }
+
+    /* Extra mobile action button improvements */
+    .note-actions {
+        opacity: 1; /* Always visible on very small screens */
+        background: rgba(0, 0, 0, 0.85);
+        padding: 4px;
+        border-radius: 6px;
+    }
+
+    .note-actions .note-action-btn {
+        min-width: 32px;
+        min-height: 32px;
+        padding: 8px;
+        font-size: 14px;
     }
 }
