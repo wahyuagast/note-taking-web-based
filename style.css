@@ -612,8 +612,10 @@ body {
     }
 }
 
+/* Wider content for note editing */
 .note-view-content {
-    max-width: 700px;
+    max-width: 1000px;
+    width: 95%;
 }
 
 .crop-modal-content {
@@ -686,16 +688,21 @@ body {
 }
 
 .modal-body {
-    padding: 1.5rem;
+    padding: var(--space-2xl);
+}
+
+/* Wider padding for note editing modal */
+.note-view-content .modal-body {
+    padding: var(--space-lg) var(--space-2xl);
 }
 
 /* Note View Styles */
 .note-view-content-text {
-    font-size: 1.1rem;
-    line-height: 1.8;
-    color: #333;
+    font-size: var(--font-size-lg);
+    line-height: 1.6;
+    color: var(--text-primary);
     word-wrap: break-word;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    font-family: var(--font-family);
 }
 
 .note-view-content-text * {
@@ -951,7 +958,7 @@ body {
 
 .note-editor .ql-container {
     border-radius: 0 0 var(--radius-lg) var(--radius-lg);
-    min-height: 200px;
+    min-height: 300px;
     font-size: var(--font-size-base);
     line-height: 1.47;
     font-family: var(--font-family);
@@ -959,7 +966,7 @@ body {
 }
 
 .note-editor .ql-editor {
-    min-height: 200px;
+    min-height: 300px;
     padding: var(--space-2xl);
     color: var(--text-primary);
     font-size: var(--font-size-base);
@@ -993,17 +1000,48 @@ body {
 }
 
 /* Apple-inspired Quill Toolbar Styling */
+.ql-snow .ql-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-lg) !important;
+}
+
 .ql-snow .ql-toolbar .ql-formats {
-    margin-right: var(--space-lg);
+    margin-right: var(--space-md);
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    flex-wrap: wrap;
+    position: relative;
+}
+
+.ql-snow .ql-toolbar .ql-formats:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: calc(var(--space-md) / -2);
+    top: 50%;
+    transform: translateY(-50%);
+    height: 20px;
+    width: 1px;
+    background: var(--border);
+}
+
+.ql-snow .ql-toolbar .ql-formats:last-child {
+    margin-right: 0;
 }
 
 .ql-snow .ql-toolbar button {
-    height: 32px;
-    width: 32px;
+    height: 36px;
+    width: 36px;
     border-radius: var(--radius-sm);
-    margin: 2px;
+    margin: 1px;
     transition: all 0.2s ease;
     border: 1px solid transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .ql-snow .ql-toolbar button:hover {
@@ -1022,6 +1060,9 @@ body {
 .ql-snow .ql-picker {
     border-radius: var(--radius-sm);
     transition: all 0.2s ease;
+    height: 36px;
+    display: flex;
+    align-items: center;
 }
 
 .ql-snow .ql-picker:hover {
@@ -1030,7 +1071,30 @@ body {
 
 .ql-snow .ql-picker-label {
     border-radius: var(--radius-sm);
-    padding: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    height: 36px;
+    display: flex;
+    align-items: center;
+    font-size: var(--font-size-sm);
+    min-width: 60px;
+}
+
+.ql-snow .ql-picker-options {
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    box-shadow: 0 8px 25px var(--shadow-hover);
+    background: var(--surface);
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.ql-snow .ql-picker-item {
+    padding: var(--space-sm) var(--space-md);
+    transition: all 0.2s ease;
+}
+
+.ql-snow .ql-picker-item:hover {
+    background: var(--surface-secondary);
 }
 
 .ql-snow .ql-picker-options {
@@ -1719,6 +1783,40 @@ body {
 
     .notes-grid {
         grid-template-columns: 1fr;
+    }
+
+    /* Mobile-friendly note editor */
+    .note-view-content {
+        width: 98%;
+        max-width: none;
+    }
+
+    .note-editor .ql-toolbar {
+        padding: var(--space-md) !important;
+        gap: var(--space-xs);
+    }
+
+    .ql-snow .ql-toolbar .ql-formats {
+        margin-right: var(--space-sm);
+        gap: 2px;
+    }
+
+    .ql-snow .ql-toolbar button {
+        height: 32px;
+        width: 32px;
+        margin: 1px;
+    }
+
+    .ql-snow .ql-picker-label {
+        padding: var(--space-xs) var(--space-sm);
+        height: 32px;
+        min-width: 50px;
+        font-size: 11px;
+    }
+
+    .note-editor .ql-editor {
+        padding: var(--space-lg);
+        min-height: 250px;
     }
 
     .notes-header {
