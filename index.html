@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Note Taking App</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <!-- Quill.js Rich Text Editor -->
@@ -217,6 +220,25 @@
                         <button type="submit" class="btn-primary">Create Folder</button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Confirmation Dialog -->
+    <div id="confirmDialog" class="modal hidden">
+        <div class="modal-content confirm-dialog-content">
+            <div class="confirm-dialog-header">
+                <div class="confirm-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h3 id="confirmTitle">Confirm Action</h3>
+            </div>
+            <div class="confirm-dialog-body">
+                <p id="confirmMessage">Are you sure you want to proceed?</p>
+            </div>
+            <div class="confirm-dialog-actions">
+                <button type="button" id="confirmCancel" class="btn-secondary">Cancel</button>
+                <button type="button" id="confirmOk" class="btn-danger">OK</button>
             </div>
         </div>
     </div>

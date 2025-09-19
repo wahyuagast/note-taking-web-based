@@ -205,7 +205,11 @@ function initializeQuillEditor() {
             if (file) {
                 // Check file size (limit to 5MB for inline images)
                 if (file.size > 5 * 1024 * 1024) {
-                    alert('Image size should be less than 5MB for inline content.');
+                    showCustomAlert({
+                        title: 'File Too Large',
+                        message: 'Image size should be less than 5MB for inline content.',
+                        type: 'warning'
+                    });
                     return;
                 }
 
@@ -242,12 +246,18 @@ function initializeQuillEditor() {
                     if (embedUrl) {
                         quillEditor.insertEmbed(range.index, 'video', embedUrl);
                         quillEditor.setSelection(range.index + 1);
+                        document.body.removeChild(videoDialog);
                     } else {
-                        alert('Please enter a valid YouTube, Vimeo, or direct video URL.');
+                        showCustomAlert({
+                            title: 'Invalid URL',
+                            message: 'Please enter a valid YouTube, Vimeo, or direct video URL.',
+                            type: 'warning'
+                        });
                         return;
                     }
+                } else {
+                    document.body.removeChild(videoDialog);
                 }
-                document.body.removeChild(videoDialog);
             };
             
             cancelBtn.onclick = () => {
@@ -342,7 +352,11 @@ function handleLogin(e) {
         localStorage.setItem('isLoggedIn', 'true');
         showMainApp();
     } else {
-        alert('Invalid credentials! Use admin/admin');
+        showCustomAlert({
+            title: 'Invalid Credentials',
+            message: 'Invalid credentials! Use admin/admin',
+            type: 'danger'
+        });
     }
 }
 
@@ -457,8 +471,19 @@ function selectFolder(folderId) {
     loadNotes();
 }
 
-function deleteFolder(folderId) {
-    if (confirm('Are you sure you want to delete this folder? Notes in this folder will not be deleted.')) {
+async function deleteFolder(folderId) {
+    const folder = storage.folders.find(f => f.id === folderId);
+    if (!folder) return;
+    
+    const confirmed = await showCustomConfirm({
+        title: 'Delete Folder',
+        message: `Are you sure you want to delete the folder "${folder.name}"?\n\nNotes in this folder will not be deleted, but they will be moved to "No Folder".`,
+        type: 'warning',
+        okText: 'Delete Folder',
+        cancelText: 'Cancel'
+    });
+    
+    if (confirmed) {
         storage.folders = storage.folders.filter(f => f.id !== folderId);
         storage.saveFolders();
         
@@ -586,15 +611,17 @@ function showEditNoteModal(noteId) {
 }
 
 // Confirm before closing modal with unsaved changes
-function confirmCloseModal() {
+async function confirmCloseModal() {
     if (hasUnsavedChanges) {
-        const userChoice = confirm(
-            'You have unsaved changes. Are you sure you want to close without saving?\n\n' +
-            'Click "OK" to discard changes and close.\n' +
-            'Click "Cancel" to continue editing.'
-        );
+        const confirmed = await showCustomConfirm({
+            title: 'Unsaved Changes',
+            message: 'You have unsaved changes. Are you sure you want to close without saving?\n\nYour changes will be lost if you continue.',
+            type: 'warning',
+            okText: 'Discard Changes',
+            cancelText: 'Continue Editing'
+        });
         
-        if (userChoice) {
+        if (confirmed) {
             // User confirmed, discard changes and close
             forceCloseModal();
         }
@@ -685,8 +712,15 @@ function handleSaveNote(e) {
         originalNoteData = null;
         
         hideNoteModal();
+        
+        // Show success message
+        showSuccessMessage(isEditing ? 'Note updated successfully!' : 'Note saved successfully!');
     } else {
-        alert('Please fill in both title and content.');
+        showCustomAlert({
+            title: 'Incomplete Note',
+            message: 'Please fill in both title and content.',
+            type: 'warning'
+        });
     }
 }
 
@@ -697,13 +731,21 @@ function handleImageUpload(e) {
     
     // Check if file is an image
     if (!file.type.startsWith('image/')) {
-        alert('Please select an image file.');
+        showCustomAlert({
+            title: 'Invalid File Type',
+            message: 'Please select an image file.',
+            type: 'warning'
+        });
         return;
     }
     
     // Check file size (limit to 5MB)
     if (file.size > 5 * 1024 * 1024) {
-        alert('Image size should be less than 5MB.');
+        showCustomAlert({
+            title: 'File Too Large',
+            message: 'Image size should be less than 5MB.',
+            type: 'warning'
+        });
         return;
     }
     
@@ -968,8 +1010,19 @@ function removeImage() {
     clearImagePreview();
 }
 
-function deleteNote(noteId) {
-    if (confirm('Are you sure you want to delete this note?')) {
+async function deleteNote(noteId) {
+    const note = storage.notes.find(n => n.id === noteId);
+    if (!note) return;
+    
+    const confirmed = await showCustomConfirm({
+        title: 'Delete Note',
+        message: `Are you sure you want to delete "${note.title}"?\n\nThis action cannot be undone.`,
+        type: 'danger',
+        okText: 'Delete',
+        cancelText: 'Cancel'
+    });
+    
+    if (confirmed) {
         storage.notes = storage.notes.filter(n => n.id !== noteId);
         storage.saveNotes();
         loadNotes();
@@ -1057,6 +1110,130 @@ function setView(view) {
         listViewBtn.classList.add('active');
         notesList.className = 'notes-list';
     }
+}
+
+// Custom Confirmation Dialog
+function showCustomConfirm(options = {}) {
+    return new Promise((resolve) => {
+        const {
+            title = 'Confirm Action',
+            message = 'Are you sure you want to proceed?',
+            type = 'danger', // danger, warning, success, info
+            okText = 'OK',
+            cancelText = 'Cancel'
+        } = options;
+
+        const confirmDialog = document.getElementById('confirmDialog');
+        const confirmContent = confirmDialog.querySelector('.confirm-dialog-content');
+        const confirmTitle = document.getElementById('confirmTitle');
+        const confirmMessage = document.getElementById('confirmMessage');
+        const confirmOk = document.getElementById('confirmOk');
+        const confirmCancel = document.getElementById('confirmCancel');
+
+        // Set content
+        confirmTitle.textContent = title;
+        confirmMessage.textContent = message;
+        confirmOk.textContent = okText;
+        confirmCancel.textContent = cancelText;
+
+        // Set type styling
+        confirmContent.className = `modal-content confirm-dialog-content ${type}`;
+
+        // Set icon based on type
+        const iconElement = confirmDialog.querySelector('.confirm-icon i');
+        switch (type) {
+            case 'warning':
+                iconElement.className = 'fas fa-exclamation-triangle';
+                confirmOk.className = 'btn-warning';
+                break;
+            case 'success':
+                iconElement.className = 'fas fa-check-circle';
+                confirmOk.className = 'btn-success';
+                break;
+            case 'info':
+                iconElement.className = 'fas fa-info-circle';
+                confirmOk.className = 'btn-primary';
+                break;
+            default: // danger
+                iconElement.className = 'fas fa-exclamation-triangle';
+                confirmOk.className = 'btn-danger';
+        }
+
+        // Show dialog
+        confirmDialog.classList.remove('hidden');
+
+        // Event handlers
+        const handleOk = () => {
+            confirmDialog.classList.add('hidden');
+            cleanup();
+            resolve(true);
+        };
+
+        const handleCancel = () => {
+            confirmDialog.classList.add('hidden');
+            cleanup();
+            resolve(false);
+        };
+
+        const handleKeydown = (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleOk();
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                handleCancel();
+            }
+        };
+
+        const handleClickOutside = (e) => {
+            if (e.target === confirmDialog) {
+                handleCancel();
+            }
+        };
+
+        const cleanup = () => {
+            confirmOk.removeEventListener('click', handleOk);
+            confirmCancel.removeEventListener('click', handleCancel);
+            document.removeEventListener('keydown', handleKeydown);
+            confirmDialog.removeEventListener('click', handleClickOutside);
+        };
+
+        // Add event listeners
+        confirmOk.addEventListener('click', handleOk);
+        confirmCancel.addEventListener('click', handleCancel);
+        document.addEventListener('keydown', handleKeydown);
+        confirmDialog.addEventListener('click', handleClickOutside);
+
+        // Focus the cancel button by default for safety
+        setTimeout(() => confirmCancel.focus(), 100);
+    });
+}
+
+// Custom Alert Dialog (for information/warnings)
+function showCustomAlert(options = {}) {
+    const {
+        title = 'Information',
+        message = 'Please note this information.',
+        type = 'info', // info, warning, success, danger
+        okText = 'OK'
+    } = options;
+
+    return showCustomConfirm({
+        title,
+        message,
+        type,
+        okText,
+        cancelText: null // Hide cancel button for alerts
+    });
+}
+
+// Success notification function
+function showSuccessMessage(message) {
+    showCustomAlert({
+        title: 'Success',
+        message: message,
+        type: 'success'
+    });
 }
 
 // Generate default image from Unsplash for notes without custom images
