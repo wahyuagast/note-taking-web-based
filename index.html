@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Note Taking App</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Login Page -->
+    <div id="loginPage" class="login-container">
+        <div class="login-form">
+            <h2><i class="fas fa-sticky-note"></i> Notes App</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" required>
+                </div>
+                <button type="submit">Login</button>
+                <p class="login-hint">Default: admin / admin</p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="mainApp" class="app-container hidden">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <h1><i class="fas fa-sticky-note"></i> My Notes</h1>
+            </div>
+            <div class="header-right">
+                <div class="search-container">
+                    <input type="text" id="searchInput" placeholder="Search notes...">
+                    <i class="fas fa-search search-icon"></i>
+                </div>
+                <button id="logoutBtn" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div class="sidebar-header">
+                    <button id="addFolderBtn" class="add-btn">
+                        <i class="fas fa-folder-plus"></i> Add Folder
+                    </button>
+                    <button id="addNoteBtn" class="add-btn">
+                        <i class="fas fa-plus"></i> Add Note
+                    </button>
+                </div>
+                
+                <div class="folders-section">
+                    <h3>Folders</h3>
+                    <div id="foldersList" class="folders-list">
+                        <div class="folder-item active" data-folder="all">
+                            <i class="fas fa-sticky-note"></i>
+                            <span>All Notes</span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Notes Area -->
+            <main class="notes-area">
+                <div class="notes-header">
+                    <h2 id="currentFolderTitle">All Notes</h2>
+                    <div class="view-options">
+                        <button id="gridViewBtn" class="view-btn active">
+                            <i class="fas fa-th"></i>
+                        </button>
+                        <button id="listViewBtn" class="view-btn">
+                            <i class="fas fa-list"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="notesList" class="notes-grid">
+                    <!-- Notes will be dynamically added here -->
+                </div>
+                
+                <div id="emptyState" class="empty-state">
+                    <i class="fas fa-sticky-note"></i>
+                    <h3>No notes yet</h3>
+                    <p>Create your first note to get started!</p>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Note View Modal -->
+    <div id="noteViewModal" class="modal hidden">
+        <div class="modal-content note-view-content">
+            <div class="modal-header">
+                <h3 id="viewNoteTitle">Note Title</h3>
+                <div class="note-view-actions">
+                    <button id="editNoteBtn" class="btn-icon" title="Edit Note">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button id="deleteNoteBtn" class="btn-icon delete" title="Delete Note">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                    <button id="closeViewModal" class="close-btn">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="modal-body">
+                <div id="viewNoteImage" class="note-image-container hidden">
+                    <img id="viewNoteImg" src="" alt="Note image">
+                </div>
+                <div id="viewNoteContent" class="note-view-content-text"></div>
+                <div id="viewNoteMeta" class="note-view-meta"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Note Edit Modal -->
+    <div id="noteModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Add Note</h3>
+                <button id="closeModal" class="close-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="noteForm">
+                    <div class="form-group">
+                        <label for="noteTitle">Title:</label>
+                        <input type="text" id="noteTitle" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="noteFolder">Folder:</label>
+                        <select id="noteFolder">
+                            <option value="">Select folder...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="noteImage">Image (optional):</label>
+                        <input type="file" id="noteImageInput" accept="image/*">
+                        <div id="imagePreview" class="image-preview hidden">
+                            <img id="previewImg" src="" alt="Preview">
+                            <button type="button" id="removeImage" class="btn-remove-image">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="noteContent">Content:</label>
+                        <textarea id="noteContent" rows="10" required></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" id="cancelBtn" class="btn-secondary">Cancel</button>
+                        <button type="submit" class="btn-primary">Save Note</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Crop Modal -->
+    <div id="cropModal" class="modal hidden">
+        <div class="modal-content crop-modal-content">
+            <div class="modal-header">
+                <h3>Crop Image</h3>
+                <button id="closeCropModal" class="close-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="crop-instructions">
+                    <p><strong>Crop your image:</strong></p>
+                    <p>• Drag the selection area to move it</p>
+                    <p>• Drag the corners to resize (maintains 16:10 ratio)</p>
+                </div>
+                <div class="crop-container">
+                    <canvas id="cropCanvas"></canvas>
+                </div>
+                <div class="crop-controls">
+                    <button type="button" id="cancelCrop" class="btn-secondary">Cancel</button>
+                    <button type="button" id="applyCrop" class="btn-primary">Apply Crop</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Folder Modal -->
+    <div id="folderModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add Folder</h3>
+                <button id="closeFolderModal" class="close-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="folderForm">
+                    <div class="form-group">
+                        <label for="folderName">Folder Name:</label>
+                        <input type="text" id="folderName" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" id="cancelFolderBtn" class="btn-secondary">Cancel</button>
+                        <button type="submit" class="btn-primary">Create Folder</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
