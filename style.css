@@ -595,10 +595,12 @@ body {
     width: 90%;
     max-width: 500px;
     max-height: 90vh;
-    overflow-y: auto;
+    overflow: hidden;
     border: 1px solid var(--border);
     box-shadow: 0 20px 50px var(--shadow-hover);
     animation: modalSlideIn 0.3s ease;
+    display: flex;
+    flex-direction: column;
 }
 
 @keyframes modalSlideIn {
@@ -614,8 +616,13 @@ body {
 
 /* Wider content for note editing */
 .note-view-content {
-    max-width: 1000px;
-    width: 95%;
+    max-width: 1200px;
+    width: 98%;
+}
+
+/* Standard modal content for other modals */
+.modal-content:not(.note-view-content) {
+    max-width: 500px;
 }
 
 .crop-modal-content {
@@ -632,6 +639,7 @@ body {
     align-items: center;
     background: var(--surface);
     border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    flex-shrink: 0;
 }
 
 .modal-header h3 {
@@ -689,11 +697,15 @@ body {
 
 .modal-body {
     padding: var(--space-2xl);
+    overflow-y: auto;
+    flex: 1;
 }
 
 /* Wider padding for note editing modal */
 .note-view-content .modal-body {
     padding: var(--space-lg) var(--space-2xl);
+    overflow-y: auto;
+    max-height: calc(90vh - 120px); /* Account for header height */
 }
 
 /* Note View Styles */
@@ -941,6 +953,9 @@ body {
     overflow: hidden;
     transition: all 0.2s ease;
     background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    max-height: calc(70vh - 100px);
 }
 
 .note-editor:focus-within {
@@ -963,6 +978,8 @@ body {
     line-height: 1.47;
     font-family: var(--font-family);
     background: var(--surface);
+    flex: 1;
+    overflow-y: auto;
 }
 
 .note-editor .ql-editor {
@@ -1001,19 +1018,23 @@ body {
 
 /* Apple-inspired Quill Toolbar Styling */
 .ql-snow .ql-toolbar {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--space-sm);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0 !important;
+    border-bottom: 1px solid var(--border) !important;
+    background: var(--surface-secondary) !important;
     padding: var(--space-lg) !important;
+    box-shadow: none !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: var(--space-sm) !important;
 }
 
 .ql-snow .ql-toolbar .ql-formats {
-    margin-right: var(--space-md);
-    display: flex;
-    align-items: center;
-    gap: var(--space-xs);
-    flex-wrap: wrap;
+    margin-right: var(--space-md) !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: var(--space-xs) !important;
+    flex-wrap: nowrap !important;
     position: relative;
 }
 
@@ -1029,72 +1050,96 @@ body {
 }
 
 .ql-snow .ql-toolbar .ql-formats:last-child {
-    margin-right: 0;
+    margin-right: 0 !important;
 }
 
 .ql-snow .ql-toolbar button {
-    height: 36px;
-    width: 36px;
-    border-radius: var(--radius-sm);
-    margin: 1px;
-    transition: all 0.2s ease;
-    border: 1px solid transparent;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    height: 36px !important;
+    width: 36px !important;
+    border-radius: var(--radius-sm) !important;
+    margin: 1px !important;
+    transition: all 0.2s ease !important;
+    border: 1px solid transparent !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }
 
 .ql-snow .ql-toolbar button:hover {
-    background: var(--primary-blue);
-    color: white;
-    transform: scale(1.05);
+    background: var(--primary-blue) !important;
+    color: white !important;
+    transform: scale(1.05) !important;
 }
 
 .ql-snow .ql-toolbar button.ql-active {
-    background: var(--primary-blue);
-    color: white;
-    box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+    background: var(--primary-blue) !important;
+    color: white !important;
+    box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3) !important;
 }
 
 /* Apple-inspired Form Elements */
 .ql-snow .ql-picker {
-    border-radius: var(--radius-sm);
-    transition: all 0.2s ease;
-    height: 36px;
-    display: flex;
-    align-items: center;
+    border-radius: var(--radius-sm) !important;
+    transition: all 0.2s ease !important;
+    height: 36px !important;
+    display: flex !important;
+    align-items: center !important;
 }
 
 .ql-snow .ql-picker:hover {
-    background: rgba(0, 122, 255, 0.1);
+    background: rgba(0, 122, 255, 0.1) !important;
 }
 
 .ql-snow .ql-picker-label {
-    border-radius: var(--radius-sm);
-    padding: var(--space-sm) var(--space-md);
-    height: 36px;
-    display: flex;
-    align-items: center;
-    font-size: var(--font-size-sm);
-    min-width: 60px;
+    border-radius: var(--radius-sm) !important;
+    padding: var(--space-sm) var(--space-md) !important;
+    height: 36px !important;
+    display: flex !important;
+    align-items: center !important;
+    font-size: var(--font-size-sm) !important;
+    min-width: 60px !important;
+    color: var(--text-primary) !important;
 }
 
 .ql-snow .ql-picker-options {
-    border-radius: var(--radius-md);
-    border: 1px solid var(--border);
-    box-shadow: 0 8px 25px var(--shadow-hover);
-    background: var(--surface);
-    max-height: 200px;
-    overflow-y: auto;
+    border-radius: var(--radius-md) !important;
+    border: 1px solid var(--border) !important;
+    box-shadow: 0 8px 25px var(--shadow-hover) !important;
+    background: var(--surface) !important;
+    max-height: 200px !important;
+    overflow-y: auto !important;
 }
 
 .ql-snow .ql-picker-item {
-    padding: var(--space-sm) var(--space-md);
-    transition: all 0.2s ease;
+    padding: var(--space-sm) var(--space-md) !important;
+    transition: all 0.2s ease !important;
+    color: var(--text-primary) !important;
 }
 
 .ql-snow .ql-picker-item:hover {
-    background: var(--surface-secondary);
+    background: var(--surface-secondary) !important;
+}
+
+/* Fix toolbar icons */
+.ql-snow .ql-toolbar button svg {
+    width: 18px !important;
+    height: 18px !important;
+}
+
+.ql-snow .ql-toolbar .ql-stroke {
+    stroke: currentColor !important;
+    stroke-width: 2 !important;
+    fill: none !important;
+}
+
+.ql-snow .ql-toolbar .ql-fill {
+    fill: currentColor !important;
+    stroke: none !important;
+}
+
+.ql-snow .ql-toolbar .ql-stroke.ql-fill {
+    fill: currentColor !important;
+    stroke: currentColor !important;
 }
 
 .ql-snow .ql-picker-options {
@@ -1787,36 +1832,45 @@ body {
 
     /* Mobile-friendly note editor */
     .note-view-content {
-        width: 98%;
-        max-width: none;
+        width: 98% !important;
+        max-width: none !important;
     }
 
     .note-editor .ql-toolbar {
         padding: var(--space-md) !important;
-        gap: var(--space-xs);
+        gap: var(--space-xs) !important;
     }
 
     .ql-snow .ql-toolbar .ql-formats {
-        margin-right: var(--space-sm);
-        gap: 2px;
+        margin-right: var(--space-sm) !important;
+        gap: 2px !important;
+    }
+
+    .ql-snow .ql-toolbar .ql-formats:not(:last-child)::after {
+        display: none;
     }
 
     .ql-snow .ql-toolbar button {
-        height: 32px;
-        width: 32px;
-        margin: 1px;
+        height: 32px !important;
+        width: 32px !important;
+        margin: 1px !important;
+    }
+
+    .ql-snow .ql-toolbar button svg {
+        width: 16px !important;
+        height: 16px !important;
     }
 
     .ql-snow .ql-picker-label {
-        padding: var(--space-xs) var(--space-sm);
-        height: 32px;
-        min-width: 50px;
-        font-size: 11px;
+        padding: var(--space-xs) var(--space-sm) !important;
+        height: 32px !important;
+        min-width: 50px !important;
+        font-size: 11px !important;
     }
 
     .note-editor .ql-editor {
-        padding: var(--space-lg);
-        min-height: 250px;
+        padding: var(--space-lg) !important;
+        min-height: 250px !important;
     }
 
     .notes-header {
