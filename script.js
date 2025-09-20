@@ -133,9 +133,10 @@ function setupEventListeners() {
     document.getElementById('cancelCrop').addEventListener('click', hideCropModal);
     document.getElementById('applyCrop').addEventListener('click', applyCrop);
     
-    // Click outside modal to close
+    // Click outside modal to close (note view modal disabled - only X button works)
     noteViewModal.addEventListener('click', (e) => {
-        if (e.target === noteViewModal) hideNoteViewModal();
+        // Note view modal can only be closed with X button for better UX
+        // This prevents accidental closes when user is reading content
     });
     noteModal.addEventListener('click', (e) => {
         if (e.target === noteModal) {
@@ -546,8 +547,44 @@ function showNoteViewModal(noteId) {
 }
 
 function hideNoteViewModal() {
+    // Stop all videos before closing modal
+    stopAllVideos();
+    
     noteViewModal.classList.add('hidden');
     currentViewingNote = null;
+}
+
+// Function to stop all embedded videos in the note preview
+function stopAllVideos() {
+    const contentElement = document.getElementById('viewNoteContent');
+    
+    // Stop YouTube videos
+    const youtubeIframes = contentElement.querySelectorAll('iframe[src*="youtube.com"], iframe[src*="youtu.be"]');
+    youtubeIframes.forEach(iframe => {
+        const src = iframe.src;
+        iframe.src = '';
+        iframe.src = src; // This will reload and stop the video
+    });
+    
+    // Stop Vimeo videos
+    const vimeoIframes = contentElement.querySelectorAll('iframe[src*="vimeo.com"]');
+    vimeoIframes.forEach(iframe => {
+        try {
+            iframe.contentWindow.postMessage('{"method":"pause"}', '*');
+        } catch (e) {
+            // Fallback: reload iframe
+            const src = iframe.src;
+            iframe.src = '';
+            iframe.src = src;
+        }
+    });
+    
+    // Stop HTML5 videos
+    const videoElements = contentElement.querySelectorAll('video');
+    videoElements.forEach(video => {
+        video.pause();
+        video.currentTime = 0;
+    });
 }
 
 function showAddNoteModal() {
