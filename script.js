@@ -99,6 +99,10 @@ function setupEventListeners() {
         hideNoteViewModal();
     });
     
+    // Note navigation
+    document.getElementById('prevNoteBtn').addEventListener('click', showPreviousNote);
+    document.getElementById('nextNoteBtn').addEventListener('click', showNextNote);
+    
     // Modal Close - Note Edit with confirmation
     document.getElementById('closeModal').addEventListener('click', (e) => {
         e.preventDefault();
@@ -544,6 +548,9 @@ function showNoteViewModal(noteId) {
     `;
     
     noteViewModal.classList.remove('hidden');
+    
+    // Update navigation button states
+    updateNavigationButtons();
 }
 
 function hideNoteViewModal() {
@@ -585,6 +592,75 @@ function stopAllVideos() {
         video.pause();
         video.currentTime = 0;
     });
+}
+
+// Get filtered notes for current folder
+function getFilteredNotes() {
+    const searchTerm = searchInput.value.toLowerCase();
+    let filteredNotes = storage.notes;
+    
+    // Filter by folder
+    if (currentFolder !== 'all') {
+        filteredNotes = filteredNotes.filter(note => note.folderId === currentFolder);
+    }
+    
+    // Filter by search term
+    if (searchTerm) {
+        filteredNotes = filteredNotes.filter(note => 
+            note.title.toLowerCase().includes(searchTerm) ||
+            note.content.toLowerCase().includes(searchTerm)
+        );
+    }
+    
+    // Sort by update date (newest first)
+    return filteredNotes.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+}
+
+// Navigate to previous note
+function showPreviousNote() {
+    if (!currentViewingNote) return;
+    
+    const filteredNotes = getFilteredNotes();
+    const currentIndex = filteredNotes.findIndex(note => note.id === currentViewingNote);
+    
+    if (currentIndex > 0) {
+        const prevNote = filteredNotes[currentIndex - 1];
+        showNoteViewModal(prevNote.id);
+    }
+    
+    updateNavigationButtons();
+}
+
+// Navigate to next note
+function showNextNote() {
+    if (!currentViewingNote) return;
+    
+    const filteredNotes = getFilteredNotes();
+    const currentIndex = filteredNotes.findIndex(note => note.id === currentViewingNote);
+    
+    if (currentIndex < filteredNotes.length - 1) {
+        const nextNote = filteredNotes[currentIndex + 1];
+        showNoteViewModal(nextNote.id);
+    }
+    
+    updateNavigationButtons();
+}
+
+// Update navigation button states
+function updateNavigationButtons() {
+    if (!currentViewingNote) return;
+    
+    const filteredNotes = getFilteredNotes();
+    const currentIndex = filteredNotes.findIndex(note => note.id === currentViewingNote);
+    
+    const prevBtn = document.getElementById('prevNoteBtn');
+    const nextBtn = document.getElementById('nextNoteBtn');
+    
+    // Disable prev button if at first note
+    prevBtn.disabled = currentIndex <= 0;
+    
+    // Disable next button if at last note
+    nextBtn.disabled = currentIndex >= filteredNotes.length - 1;
 }
 
 function showAddNoteModal() {
@@ -1100,6 +1176,16 @@ function loadNotes() {
             const hasImage = 'has-image'; // Always show image (either custom or default)
             const contentPreview = stripHtml(note.content);
             
+            // Determine content length class
+            let contentLengthClass = '';
+            if (contentPreview.length < 50) {
+                contentLengthClass = 'short';
+            } else if (contentPreview.length < 150) {
+                contentLengthClass = 'medium';
+            } else {
+                contentLengthClass = 'long';
+            }
+            
             // Use custom image if available, otherwise use default from Unsplash
             const imageUrl = note.image || getDefaultImage(note.id);
             
@@ -1115,7 +1201,7 @@ function loadNotes() {
                     </div>
                     <img src="${imageUrl}" alt="Note image" class="note-card-image">
                     <h3>${escapeHtml(note.title)}</h3>
-                    <div class="note-content">${escapeHtml(contentPreview)}</div>
+                    <div class="note-content ${contentLengthClass}">${escapeHtml(contentPreview)}</div>
                     <div class="note-meta">
                         <span>${date}</span>
                         ${folderName ? `<span class="note-folder">${escapeHtml(folderName)}</span>` : ''}

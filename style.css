@@ -46,10 +46,11 @@
     --space-4xl: 40px;
     
     /* Border Radius */
-    --radius-sm: 6px;
+    --radius-sm: 8px;
     --radius-md: 12px;
     --radius-lg: 16px;
     --radius-xl: 20px;
+    --radius-2xl: 24px;
 }
 
 body {
@@ -102,15 +103,15 @@ body {
 }
 
 .form-group {
-    margin-bottom: var(--space-2xl);
+    margin-bottom: var(--space-lg);
 }
 
 .form-group label {
     display: block;
-    font-size: var(--font-size-sm);
+    font-size: 12px;
     font-weight: 500;
     color: var(--text-secondary);
-    margin-bottom: var(--space-sm);
+    margin-bottom: var(--space-xs);
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
@@ -119,10 +120,10 @@ body {
 .form-group select,
 .form-group textarea {
     width: 100%;
-    padding: var(--space-lg);
+    padding: var(--space-md);
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
-    font-size: var(--font-size-base);
+    font-size: 14px;
     font-family: var(--font-family);
     background-color: var(--surface-secondary);
     color: var(--text-primary);
@@ -429,7 +430,7 @@ body {
 /* Apple-inspired Note Cards */
 .note-card {
     background: var(--surface);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-xl);
     padding: var(--space-2xl);
     border: 1px solid var(--border);
     transition: all 0.2s ease;
@@ -457,10 +458,26 @@ body {
     color: #666;
     margin-bottom: 1rem;
     display: -webkit-box;
-    -webkit-line-clamp: 3;
+    -webkit-line-clamp: 4;
     -webkit-box-orient: vertical;
-    line-clamp: 3;
+    line-clamp: 4;
     overflow: hidden;
+    min-height: auto;
+}
+
+.note-content.short {
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+}
+
+.note-content.medium {
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+}
+
+.note-content.long {
+    -webkit-line-clamp: 5;
+    line-clamp: 5;
 }
 
 .note-meta {
@@ -487,12 +504,10 @@ body {
     gap: 0.5rem;
     opacity: 0;
     transition: opacity 0.3s ease;
-    background: rgba(255, 255, 255, 0.95);
+    background: transparent;
     padding: 6px;
     border-radius: 8px;
-    backdrop-filter: blur(10px);
     z-index: 10;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .note-card:hover .note-actions {
@@ -501,52 +516,73 @@ body {
 
 .note-card.has-image .note-actions {
     top: 8px;
-    background: rgba(0, 0, 0, 0.8);
+    background: transparent;
 }
 
 .note-card.has-image .note-actions .note-action-btn {
     color: white;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .note-card.has-image .note-actions .note-action-btn:hover {
-    background: rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.9);
+    color: #1d1d1f;
+    border-color: rgba(0, 0, 0, 0.2);
+}
+
+.note-card.has-image .note-actions .note-action-btn.delete:hover {
+    background: rgba(255, 59, 48, 0.9);
+    color: white;
+    border-color: rgba(255, 59, 48, 0.3);
 }
 
 .note-action-btn {
-    padding: 8px 10px;
-    background: none;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.2s ease;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 32px;
-    min-height: 32px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    color: #1d1d1f;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 0;
 }
 
 .note-action-btn:hover {
-    background: rgba(102, 126, 234, 0.1);
-    transform: scale(1.05);
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(0, 0, 0, 0.2);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .note-action-btn.edit {
-    color: #28a745;
+    color: #007AFF;
 }
 
 .note-action-btn.edit:hover {
-    background: rgba(40, 167, 69, 0.1);
-    color: #28a745;
+    background: rgba(0, 122, 255, 0.15);
+    color: #007AFF;
+    border-color: rgba(0, 122, 255, 0.3);
 }
 
 .note-action-btn.delete {
-    color: #dc3545;
+    color: #FF3B30;
 }
 
 .note-action-btn.delete:hover {
-    background: rgba(220, 53, 69, 0.1);
-    color: #dc3545;
+    background: rgba(255, 59, 48, 0.9) !important;
+    color: white !important;
+    border-color: rgba(255, 59, 48, 0.3) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 59, 48, 0.3);
 }
 
 /* Empty State */
@@ -592,7 +628,7 @@ body {
 /* Standard modal content */
 .modal-content {
     background: var(--surface);
-    border-radius: var(--radius-xl);
+    border-radius: var(--radius-2xl);
     width: 90%;
     max-width: 500px;
     max-height: 90vh;
@@ -634,23 +670,93 @@ body {
 
 /* Apple-inspired Modal Header */
 .modal-header {
-    padding: var(--space-2xl);
+    padding: var(--space-lg) var(--space-xl);
     border-bottom: 1px solid var(--border);
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     background: var(--surface);
     border-radius: var(--radius-xl) var(--radius-xl) 0 0;
     flex-shrink: 0;
+    min-height: 48px;
+    position: relative;
 }
 
 .modal-header h3 {
-    margin: 0;
     color: var(--text-primary);
-    flex: 1;
-    font-size: var(--font-size-xl);
+    margin: 0;
+    font-size: var(--font-size-lg);
     font-weight: 600;
-    letter-spacing: -0.02em;
+    text-align: center;
+}
+
+.modal-header .close-btn {
+    position: absolute;
+    right: var(--space-lg);
+}
+
+/* New layout for note view modal header */
+#noteViewModal .modal-header {
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.note-nav-section {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.note-title-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.note-actions-section {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+/* Navigation buttons */
+.nav-btn {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--text-secondary);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.nav-btn:hover {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: var(--border-hover);
+    color: var(--text-primary);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.nav-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.nav-btn i {
+    font-size: 14px;
 }
 
 .note-view-actions {
@@ -660,28 +766,37 @@ body {
 }
 
 .btn-icon {
-    background: transparent;
-    border: none;
-    padding: var(--space-md);
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    color: var(--text-secondary);
-    transition: all 0.2s ease;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--text-secondary);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    padding: 0;
 }
 
 .btn-icon:hover {
-    background: var(--surface-secondary);
+    background: rgba(255, 255, 255, 0.95);
+    border-color: var(--border-hover);
     color: var(--text-primary);
-    transform: scale(1.05);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 /* Apple-inspired Buttons and Forms */
 .btn-icon.delete:hover {
-    background: #fee;
-    color: #dc3545;
+    background: rgba(255, 95, 87, 0.9) !important;
+    border-color: rgba(255, 95, 87, 0.3) !important;
+    color: white !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(255, 95, 87, 0.3) !important;
 }
 
 .close-btn {
@@ -695,6 +810,67 @@ body {
 
 .close-btn:hover {
     color: #333;
+}
+
+/* macOS-style circular close button */
+.close-btn-macos {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: none;
+    background: #ff5f57;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(255, 95, 87, 0.3);
+    position: relative;
+    flex-shrink: 0;
+}
+
+.close-btn-macos:hover {
+    background: #ff4742;
+    transform: scale(1.1);
+    box-shadow: 0 3px 8px rgba(255, 95, 87, 0.4);
+}
+
+.close-btn-macos:active {
+    transform: scale(0.95);
+}
+
+.close-dot {
+    width: 2px;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.close-btn-macos:hover .close-dot {
+    opacity: 1;
+}
+
+/* Ensure consistent header layout for all modals */
+.modal-header {
+    padding: var(--space-lg) var(--space-xl);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--surface);
+    border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+    flex-shrink: 0;
+    min-height: 48px;
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: var(--text-primary);
+    flex: 1;
+    font-size: var(--font-size-lg);
+    font-weight: 600;
 }
 
 .modal-body {
@@ -955,16 +1131,6 @@ body {
 
 /* Rich Text Editor Styles */
 .note-editor {
-    border: 1px solid #e1e5e9;
-    border-radius: 8px;
-    background: white;
-    min-height: 300px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-/* Apple-inspired Quill Editor with Enhanced Aesthetics */
-.note-editor {
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     overflow: hidden;
@@ -972,11 +1138,12 @@ body {
     background: var(--surface);
     display: flex;
     flex-direction: column;
-    max-height: calc(70vh - 100px);
+    min-height: 400px;
+    max-height: 500px;
     box-shadow: 
-        0 1px 3px rgba(0, 0, 0, 0.05),
-        0 4px 16px rgba(0, 0, 0, 0.02),
-        inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        0 8px 32px rgba(0, 0, 0, 0.08),
+        0 4px 16px rgba(0, 0, 0, 0.04),
+        0 2px 8px rgba(0, 0, 0, 0.02);
     position: relative;
 }
 
@@ -1006,19 +1173,24 @@ body {
 }
 
 .note-editor .ql-toolbar {
-    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
     border-bottom: 1px solid var(--border);
     background: linear-gradient(135deg, 
         var(--surface-secondary) 0%, 
         #fafbfc 50%, 
         var(--surface-secondary) 100%);
     padding: var(--space-lg);
+    margin-bottom: var(--space-md);
     box-shadow: 
         inset 0 1px 0 rgba(255, 255, 255, 0.9),
         0 1px 3px rgba(0, 0, 0, 0.02);
-    position: relative;
+    position: sticky;
+    top: 0;
+    z-index: 100;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
+    flex-shrink: 0;
+    overflow: visible;
 }
 
 .note-editor .ql-toolbar::after {
@@ -1036,7 +1208,7 @@ body {
 }
 
 .note-editor .ql-container {
-    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    border-radius: 0 0 var(--radius-xl) var(--radius-xl);
     min-height: 300px;
     font-size: var(--font-size-base);
     line-height: 1.47;
@@ -1047,6 +1219,7 @@ body {
     flex: 1;
     overflow-y: auto;
     position: relative;
+    z-index: 1;
 }
 
 .note-editor .ql-container::before {
@@ -1055,9 +1228,10 @@ body {
     top: 0;
     left: 0;
     right: 0;
-    height: 8px;
+    height: 12px;
     background: linear-gradient(180deg, 
-        rgba(0, 0, 0, 0.02) 0%, 
+        rgba(0, 0, 0, 0.03) 0%, 
+        rgba(0, 0, 0, 0.01) 50%,
         transparent 100%);
     pointer-events: none;
     z-index: 1;
@@ -1066,11 +1240,13 @@ body {
 .note-editor .ql-editor {
     min-height: 300px;
     padding: var(--space-2xl);
+    padding-top: var(--space-3xl);
     color: var(--text-primary);
     font-size: var(--font-size-base);
     line-height: 1.47;
     position: relative;
     background: transparent;
+    margin-top: var(--space-md);
 }
 
 .note-editor .ql-editor:focus {
@@ -1117,6 +1293,9 @@ body {
     flex-wrap: wrap !important;
     align-items: center !important;
     gap: var(--space-sm) !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 100 !important;
 }
 
 .ql-snow .ql-toolbar .ql-formats {
@@ -1148,91 +1327,142 @@ body {
     width: 36px !important;
     border-radius: var(--radius-sm) !important;
     margin: 1px !important;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition: all 0.2s ease !important;
     border: 1px solid transparent !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    background: linear-gradient(135deg, 
-        rgba(255, 255, 255, 0.9) 0%, 
-        rgba(255, 255, 255, 0.4) 100%) !important;
-    box-shadow: 
-        0 1px 2px rgba(0, 0, 0, 0.05),
-        inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+    background: rgba(255, 255, 255, 0.7) !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
     position: relative !important;
 }
 
-.ql-snow .ql-toolbar button::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    border-radius: inherit;
-    background: linear-gradient(135deg, 
-        rgba(255, 255, 255, 0.3) 0%, 
-        transparent 50%, 
-        rgba(0, 0, 0, 0.02) 100%);
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.3s ease;
+.ql-snow .ql-toolbar button svg {
+    width: 18px !important;
+    height: 18px !important;
+    display: block !important;
 }
 
 .ql-snow .ql-toolbar button:hover {
-    background: linear-gradient(135deg, 
-        var(--primary-blue) 0%, 
-        #0066E6 100%) !important;
+    background: var(--primary-blue) !important;
     color: white !important;
-    transform: translateY(-1px) scale(1.02) !important;
-    box-shadow: 
-        0 3px 8px rgba(0, 122, 255, 0.25),
-        0 1px 3px rgba(0, 122, 255, 0.15),
-        inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
-    border-color: rgba(0, 122, 255, 0.3) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 3px 8px rgba(0, 122, 255, 0.25) !important;
+    border-color: var(--primary-blue) !important;
 }
 
-.ql-snow .ql-toolbar button:hover::before {
-    opacity: 1;
+.ql-snow .ql-toolbar button:hover svg {
+    color: white !important;
 }
 
 .ql-snow .ql-toolbar button.ql-active {
-    background: linear-gradient(135deg, 
-        var(--primary-blue) 0%, 
-        #0066E6 100%) !important;
+    background: var(--primary-blue) !important;
     color: white !important;
-    box-shadow: 
-        0 2px 8px rgba(0, 122, 255, 0.3),
-        inset 0 1px 2px rgba(0, 0, 0, 0.1),
-        inset 0 -1px 0 rgba(255, 255, 255, 0.1) !important;
-    border-color: rgba(0, 122, 255, 0.4) !important;
-    transform: translateY(0px) !important;
+    box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3) !important;
+    border-color: var(--primary-blue) !important;
+}
+
+.ql-snow .ql-toolbar button.ql-active svg {
+    color: white !important;
+}
+
+/* SVG and Icon Styling */
+.ql-snow .ql-toolbar button svg {
+    width: 16px !important;
+    height: 16px !important;
+    display: block !important;
+    color: inherit !important;
+}
+
+/* Specific fixes for color picker and alignment icons that tend to be larger */
+.ql-snow .ql-toolbar .ql-color .ql-picker-label svg,
+.ql-snow .ql-toolbar .ql-background .ql-picker-label svg,
+.ql-snow .ql-toolbar .ql-align .ql-picker-label svg {
+    width: 14px !important;
+    height: 14px !important;
+}
+
+/* Fix for text color and background color icons */
+.ql-snow .ql-toolbar .ql-color .ql-picker-label::before,
+.ql-snow .ql-toolbar .ql-background .ql-picker-label::before {
+    content: none !important;
+}
+
+/* Fix for align dropdown icons visibility */
+.ql-snow .ql-picker-options .ql-picker-item {
+    color: var(--text-primary) !important;
+}
+
+.ql-snow .ql-picker-options .ql-picker-item svg {
+    width: 14px !important;
+    height: 14px !important;
+    fill: currentColor !important;
+    stroke: currentColor !important;
+}
+
+.ql-snow .ql-toolbar .ql-stroke {
+    stroke: currentColor !important;
+    fill: none !important;
+    stroke-width: 2 !important;
+    stroke-linecap: round !important;
+    stroke-linejoin: round !important;
+}
+
+.ql-snow .ql-toolbar .ql-fill {
+    fill: currentColor !important;
+    stroke: none !important;
+}
+
+.ql-snow .ql-toolbar .ql-stroke.ql-fill {
+    fill: currentColor !important;
+    stroke: currentColor !important;
+    stroke-width: 1 !important;
+}
+
+/* Fix for specific Quill icons that have inconsistent styling */
+.ql-snow .ql-toolbar button .ql-even {
+    fill: currentColor !important;
+    stroke: none !important;
+}
+
+.ql-snow .ql-toolbar button .ql-stroke.ql-thin {
+    stroke-width: 1 !important;
+}
+
+.ql-snow .ql-toolbar button .ql-stroke.ql-thick {
+    stroke-width: 3 !important;
+}
+
+/* Ensure all path elements follow the same rules */
+.ql-snow .ql-toolbar button svg path {
+    stroke: inherit !important;
+    fill: inherit !important;
+    stroke-width: inherit !important;
+}
+
+/* Override Quill's default icon styles */
+.ql-snow .ql-toolbar button svg .ql-transparent {
+    opacity: 0.4 !important;
 }
 
 /* Apple-inspired Form Elements with Enhanced Shading */
 .ql-snow .ql-picker {
     border-radius: var(--radius-sm) !important;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition: all 0.2s ease !important;
     height: 36px !important;
     display: flex !important;
     align-items: center !important;
-    background: linear-gradient(135deg, 
-        rgba(255, 255, 255, 0.9) 0%, 
-        rgba(255, 255, 255, 0.4) 100%) !important;
-    box-shadow: 
-        0 1px 2px rgba(0, 0, 0, 0.05),
-        inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
-    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+    background: rgba(255, 255, 255, 0.7) !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+    border: 1px solid transparent !important;
+    position: relative !important;
+    z-index: 1001 !important;
 }
 
 .ql-snow .ql-picker:hover {
-    background: linear-gradient(135deg, 
-        rgba(0, 122, 255, 0.1) 0%, 
-        rgba(0, 122, 255, 0.05) 100%) !important;
-    box-shadow: 
-        0 2px 6px rgba(0, 122, 255, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
-    border-color: rgba(0, 122, 255, 0.2) !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1) !important;
+    border-color: var(--border) !important;
     transform: translateY(-0.5px) !important;
 }
 
@@ -1247,6 +1477,8 @@ body {
     color: var(--text-primary) !important;
     background: transparent !important;
     transition: all 0.2s ease !important;
+    border: none !important;
+    cursor: pointer !important;
 }
 
 .ql-snow .ql-picker-options {
@@ -1256,23 +1488,68 @@ body {
         0 10px 30px rgba(0, 0, 0, 0.12),
         0 4px 16px rgba(0, 0, 0, 0.08),
         0 1px 4px rgba(0, 0, 0, 0.05) !important;
-    background: linear-gradient(135deg, 
-        var(--surface) 0%, 
-        #fafbfc 100%) !important;
+    background: var(--surface) !important;
     max-height: 200px !important;
     overflow-y: auto !important;
-    backdrop-filter: blur(20px) !important;
-    -webkit-backdrop-filter: blur(20px) !important;
+    z-index: 9999 !important;
+    margin-top: 4px !important;
+    position: absolute !important;
+    padding: 4px !important;
+}
+
+/* Custom scrollbar for dropdown to keep it inside container */
+.ql-snow .ql-picker-options::-webkit-scrollbar {
+    width: 6px !important;
+}
+
+.ql-snow .ql-picker-options::-webkit-scrollbar-track {
+    background: transparent !important;
+    border-radius: var(--radius-sm) !important;
+    margin: 4px 0 !important;
+}
+
+.ql-snow .ql-picker-options::-webkit-scrollbar-thumb {
+    background: var(--border) !important;
+    border-radius: var(--radius-sm) !important;
+    border: 1px solid var(--surface) !important;
+}
+
+.ql-snow .ql-picker-options::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary) !important;
 }
 
 .ql-snow .ql-picker-item {
     padding: var(--space-sm) var(--space-md) !important;
-    transition: all 0.2s ease !important;
+    margin-right: 4px !important;
     color: var(--text-primary) !important;
+    cursor: pointer !important;
+    transition: background-color 0.2s ease !important;
+    border-radius: var(--radius-sm) !important;
 }
 
 .ql-snow .ql-picker-item:hover {
     background: var(--surface-secondary) !important;
+}
+
+.ql-snow .ql-picker-item.ql-selected {
+    background: var(--primary-blue) !important;
+    color: white !important;
+}
+
+/* Fix dropdown positioning issues */
+.ql-snow .ql-picker.ql-expanded .ql-picker-options {
+    z-index: 10000 !important;
+    position: absolute !important;
+    top: 100% !important;
+    left: 0 !important;
+    right: auto !important;
+    transform: none !important;
+}
+
+/* Ensure the note editor doesn't create stacking context issues */
+.note-editor {
+    transform: none !important;
+    will-change: auto !important;
 }
 
 /* Enhanced Scrollbar for Editor */
@@ -1602,10 +1879,10 @@ body {
 
 /* Image Styles */
 .note-image-container {
-    margin-bottom: 1.5rem;
+    margin-bottom: var(--space-lg);
     text-align: center;
     overflow: hidden;
-    border-radius: 8px;
+    border-radius: var(--radius-md);
     background: #f8f9fa;
 }
 
@@ -1613,15 +1890,15 @@ body {
     max-width: 100%;
     width: 100%;
     height: auto;
-    max-height: 350px;
+    max-height: 250px;
     object-fit: contain;
     object-position: center;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: var(--radius-md);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .image-preview {
-    margin-top: 1rem;
+    margin-top: var(--space-md);
     position: relative;
     display: inline-block;
 }
@@ -1637,7 +1914,7 @@ body {
     position: absolute;
     top: -8px;
     right: -8px;
-    background: #dc3545;
+    background: rgba(255, 95, 87, 0.9);
     color: white;
     border: none;
     border-radius: 50%;
@@ -1647,11 +1924,18 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.8rem;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 2px 8px rgba(255, 95, 87, 0.3);
 }
 
 .btn-remove-image:hover {
-    background: #c82333;
+    background: rgba(255, 95, 87, 1);
+    transform: translateY(-1px) scale(1.05);
+    box-shadow: 0 4px 12px rgba(255, 95, 87, 0.5);
 }
 
 /* Note Card Image */
@@ -1726,31 +2010,46 @@ body {
 }
 
 .btn-primary {
-    padding: 0.75rem 1.5rem;
-    background: #667eea;
+    padding: 10px 20px;
+    background: #007AFF;
     color: white;
     border: none;
-    border-radius: 5px;
+    border-radius: var(--radius-md);
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    font-family: var(--font-family-primary);
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    box-shadow: 0 1px 3px rgba(0, 122, 255, 0.3);
 }
 
 .btn-primary:hover {
-    background: #5a6fd8;
+    background: #0056CC;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.4);
 }
 
 .btn-secondary {
-    padding: 0.75rem 1.5rem;
-    background: #6c757d;
-    color: white;
-    border: none;
-    border-radius: 5px;
+    padding: 10px 20px;
+    background: rgba(255, 255, 255, 0.8);
+    color: #1d1d1f;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: var(--radius-md);
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    font-family: var(--font-family-primary);
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .btn-secondary:hover {
-    background: #5a6268;
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(0, 0, 0, 0.2);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 /* Video Dialog Styles */
