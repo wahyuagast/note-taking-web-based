@@ -620,9 +620,30 @@ body {
     animation: modalFadeIn 0.3s ease;
 }
 
+/* macOS Alert specific overlay */
+#confirmDialog.modal {
+    background: rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    animation: macosModalFadeIn 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
 @keyframes modalFadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
+}
+
+@keyframes macosModalFadeIn {
+    from { 
+        opacity: 0;
+        backdrop-filter: blur(0px);
+        -webkit-backdrop-filter: blur(0px);
+    }
+    to { 
+        opacity: 1;
+        backdrop-filter: blur(40px);
+        -webkit-backdrop-filter: blur(40px);
+    }
 }
 
 /* Standard modal content */
@@ -642,14 +663,78 @@ body {
 
 /* Wider content for note editing */
 #noteModal .modal-content {
-    max-width: 1400px;
-    width: 95%;
+    max-width: none;
+    width: calc(100vw - 80px);
+    height: calc(100vh - 80px);
+    max-height: calc(100vh - 80px);
 }
 
-/* Medium width for note preview */
+/* Ensure macOS controls are properly positioned in noteModal */
+#noteModal .macos-window-controls {
+    position: relative;
+    left: 0;
+    top: 0;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 8px;
+    z-index: 1001;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    padding: 6px 10px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    opacity: 1;
+    visibility: visible;
+}
+
+#noteModal .macos-btn {
+    display: flex !important;
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Ensure proper spacing for noteModal header */
+#noteModal .modal-header {
+    padding: var(--space-sm) var(--space-md);
+    position: relative;
+    overflow: visible;
+}
+
+#noteModal .modal-header h3 {
+    margin: 0;
+    padding: 0;
+    text-align: center;
+}
+
+/* Use same layout as note view modal */
+#noteModal .note-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-xs) 0;
+    position: relative;
+    min-height: 40px;
+}
+
+#noteModal .note-title-section {
+    flex: 1;
+    text-align: center;
+    padding: 0 20px;
+}
+
+#noteModal .note-actions-section {
+    width: 60px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* Larger width for note preview */
 #noteViewModal .modal-content {
-    max-width: 800px;
-    width: 90%;
+    max-width: none;
+    width: calc(100vw - 80px);
+    height: calc(100vh - 80px);
+    max-height: calc(100vh - 80px);
 }
 
 @keyframes modalSlideIn {
@@ -668,52 +753,58 @@ body {
     max-height: 80vh;
 }
 
-/* Apple-inspired Modal Header */
-.modal-header {
-    padding: var(--space-lg) var(--space-xl);
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: var(--surface);
-    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-    flex-shrink: 0;
-    min-height: 48px;
-    position: relative;
-}
-
-.modal-header h3 {
-    color: var(--text-primary);
-    margin: 0;
-    font-size: var(--font-size-lg);
-    font-weight: 600;
-    text-align: center;
-}
-
-.modal-header .close-btn {
-    position: absolute;
-    right: var(--space-lg);
-}
-
 /* New layout for note view modal header */
 #noteViewModal .modal-header {
-    display: grid;
-    grid-template-columns: 1fr 2fr 1fr;
-    align-items: center;
-    gap: var(--space-md);
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    min-height: auto;
 }
 
-.note-nav-section {
+#noteViewModal .modal-header h3 {
+    padding: 0;
+    max-width: none;
+}
+
+/* Title row with close button */
+.note-title-row {
     display: flex;
-    justify-content: flex-start;
+    justify-content: space-between;
     align-items: center;
+    width: 100%;
+}
+
+/* Controls row for navigation and search */
+.note-controls-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    width: 100%;
+    padding-top: var(--space-xs);
+    border-top: 1px solid var(--border);
+    gap: var(--space-md);
 }
 
 .note-title-section {
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
-    text-align: center;
+    text-align: left;
+    flex: 1;
+    min-width: 0;
+}
+
+.note-title-section h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
 }
 
 .note-actions-section {
@@ -721,6 +812,223 @@ body {
     justify-content: flex-end;
     align-items: center;
     gap: var(--space-sm);
+    position: relative;
+}
+
+.note-actions-section {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: var(--space-sm);
+    position: relative;
+}
+
+.note-actions-section .close-btn-macos {
+    position: static;
+    transform: none;
+    right: auto;
+    top: auto;
+}
+
+.note-actions-section .close-btn-macos:hover {
+    background: #ff4742;
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(255, 95, 87, 0.4);
+}
+
+.note-actions-section .close-btn-macos:active {
+    transform: scale(0.95);
+}
+
+/* Note search section */
+.note-search-section {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    justify-content: flex-end;
+    flex: 1;
+}
+
+/* Navigation sections */
+.note-nav-left {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.note-nav-right {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+/* Search input bar styling */
+.search-input-bar {
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    background: var(--surface);
+    color: var(--text-primary);
+    width: 150px;
+    transition: all 0.2s ease;
+    font-family: var(--font-family-primary);
+    margin-right: var(--space-sm);
+}
+
+.search-input-bar:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    width: 180px;
+    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+}
+
+.search-input-bar:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.1);
+    width: 180px;
+}
+
+.search-input-bar::placeholder {
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+/* Update nav section for new layout */
+.note-nav-section {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+/* Search highlight styling */
+.search-highlight {
+    background-color: #ffeb3b;
+    color: #000;
+    padding: 1px 2px;
+    border-radius: 2px;
+    transition: all 0.2s ease;
+}
+
+.search-highlight.current {
+    background-color: #ff9800;
+    color: white;
+    box-shadow: 0 0 0 2px rgba(255, 152, 0, 0.3);
+}
+
+.search-info {
+    background: var(--apple-gray-light);
+    border: 1px solid var(--apple-gray);
+    border-radius: var(--border-radius-sm);
+    padding: 8px 12px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    color: var(--apple-gray-dark);
+    text-align: center;
+    display: none;
+}
+
+.search-info.visible {
+    display: block;
+}
+
+.search-info.no-results {
+    background: #fff3cd;
+    border-color: #ffeaa7;
+    color: #856404;
+}
+
+/* Image resize functionality in editor */
+.resizable-image-container {
+    position: relative;
+    display: inline-block;
+    border: 2px dashed transparent;
+    margin: 8px 0;
+    transition: border-color 0.2s ease;
+}
+
+.resizable-image-container:hover {
+    border-color: var(--primary-blue) !important;
+}
+
+.resize-handle {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: var(--primary-blue);
+    border: 1px solid white;
+    border-radius: 50%;
+    display: none;
+    z-index: 10;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.resize-handle:hover {
+    background: var(--primary-blue-hover);
+    transform: scale(1.2);
+}
+
+.image-crop-btn {
+    position: absolute;
+    top: -12px;
+    right: -12px;
+    width: 24px;
+    height: 24px;
+    border: none;
+    border-radius: 50%;
+    background: var(--primary-blue);
+    color: white;
+    font-size: 10px;
+    cursor: pointer;
+    display: none;
+    z-index: 11;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease;
+}
+
+.image-crop-btn:hover {
+    background: var(--primary-blue-hover);
+    transform: scale(1.1);
+}
+
+.image-crop-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(20px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    animation: modalFadeIn 0.3s ease;
+}
+
+.image-crop-modal > div {
+    background: var(--surface);
+    padding: var(--space-2xl);
+    border-radius: var(--radius-xl);
+    max-width: 90%;
+    max-height: 90%;
+    overflow: auto;
+    box-shadow: 0 20px 50px var(--shadow-hover);
+}
+
+.image-crop-modal h3 {
+    margin-bottom: var(--space-lg);
+    color: var(--text-primary);
+    font-size: var(--font-size-lg);
+}
+
+.image-crop-modal canvas {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    display: block;
+    margin: 0 auto;
 }
 
 /* Navigation buttons */
@@ -812,10 +1120,527 @@ body {
     color: #333;
 }
 
-/* macOS-style circular close button */
+/* macOS Minimize Animation - Suction Effect to Bottom Right */
+@keyframes minimizeToCorner {
+    0% {
+        transform: scale(1) translateX(0) translateY(0) rotate(0deg);
+        opacity: 1;
+        border-radius: var(--radius-lg);
+        filter: blur(0px);
+    }
+    20% {
+        transform: scale(0.9) translateX(150px) translateY(80px) rotate(2deg);
+        opacity: 0.95;
+        border-radius: 12px;
+        filter: blur(0px);
+    }
+    40% {
+        transform: scale(0.7) translateX(350px) translateY(180px) rotate(5deg);
+        opacity: 0.85;
+        border-radius: 16px;
+        filter: blur(0.5px);
+    }
+    60% {
+        transform: scale(0.5) translateX(600px) translateY(320px) rotate(10deg);
+        opacity: 0.65;
+        border-radius: 20px;
+        filter: blur(1px);
+    }
+    75% {
+        transform: scale(0.3) translateX(800px) translateY(450px) rotate(15deg);
+        opacity: 0.4;
+        border-radius: 25px;
+        filter: blur(2px);
+    }
+    85% {
+        transform: scale(0.15) translateX(950px) translateY(550px) rotate(20deg);
+        opacity: 0.2;
+        border-radius: 30px;
+        filter: blur(3px);
+    }
+    95% {
+        transform: scale(0.05) translateX(calc(100vw - 30px)) translateY(calc(100vh - 30px)) rotate(25deg);
+        opacity: 0.05;
+        border-radius: 35px;
+        filter: blur(4px);
+    }
+    100% {
+        transform: scale(0.01) translateX(calc(100vw - 10px)) translateY(calc(100vh - 10px)) rotate(30deg);
+        opacity: 0;
+        border-radius: 40px;
+        filter: blur(5px);
+        visibility: hidden;
+        display: none;
+    }
+}
+
+/* macOS Maximize Animation - Elegant Fullscreen */
+@keyframes maximizeToFullscreen {
+    0% {
+        transform: scale(1);
+        border-radius: var(--radius-lg);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    }
+    50% {
+        transform: scale(1.02);
+        border-radius: 8px;
+        box-shadow: 0 35px 60px -12px rgba(0, 0, 0, 0.35);
+    }
+    100% {
+        transform: scale(1.05);
+        border-radius: 0;
+        box-shadow: none;
+    }
+}
+
+/* macOS Restore from Fullscreen Animation */
+@keyframes restoreFromFullscreen {
+    0% {
+        transform: scale(1.05);
+        border-radius: 0;
+        box-shadow: none;
+    }
+    50% {
+        transform: scale(1.02);
+        border-radius: 8px;
+        box-shadow: 0 35px 60px -12px rgba(0, 0, 0, 0.35);
+    }
+    100% {
+        transform: scale(1);
+        border-radius: var(--radius-lg);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    }
+}
+
+/* macOS Close Animation - Enhanced Fade and Scale Out */
+@keyframes closeModal {
+    0% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+        filter: blur(0px) brightness(1);
+    }
+    25% {
+        transform: scale(0.9) rotate(0deg);
+        opacity: 0.8;
+        filter: blur(1px) brightness(0.9);
+    }
+    50% {
+        transform: scale(0.7) rotate(0deg);
+        opacity: 0.6;
+        filter: blur(2px) brightness(0.7);
+    }
+    75% {
+        transform: scale(0.4) rotate(0deg);
+        opacity: 0.3;
+        filter: blur(4px) brightness(0.5);
+    }
+    100% {
+        transform: scale(0.1) rotate(0deg);
+        opacity: 0;
+        filter: blur(6px) brightness(0.2);
+        visibility: hidden;
+        display: none;
+    }
+}
+.modal.minimized {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
+
+/* macOS Restore Animation - Reverse Suction from Corner */
+@keyframes restoreFromCorner {
+    0% {
+        transform: scale(0.01) translateX(calc(100vw - 10px)) translateY(calc(100vh - 10px)) rotate(30deg);
+        opacity: 0;
+        border-radius: 40px;
+        filter: blur(5px);
+        display: none;
+        visibility: hidden;
+    }
+    5% {
+        display: block;
+        visibility: visible;
+        transform: scale(0.05) translateX(calc(100vw - 30px)) translateY(calc(100vh - 30px)) rotate(25deg);
+        opacity: 0.05;
+        filter: blur(4px);
+    }
+    15% {
+        transform: scale(0.15) translateX(950px) translateY(550px) rotate(20deg);
+        opacity: 0.2;
+        border-radius: 30px;
+        filter: blur(3px);
+    }
+    25% {
+        transform: scale(0.3) translateX(800px) translateY(450px) rotate(15deg);
+        opacity: 0.4;
+        border-radius: 25px;
+        filter: blur(2px);
+    }
+    40% {
+        transform: scale(0.5) translateX(600px) translateY(320px) rotate(10deg);
+        opacity: 0.65;
+        border-radius: 20px;
+        filter: blur(1px);
+    }
+    60% {
+        transform: scale(0.7) translateX(350px) translateY(180px) rotate(5deg);
+        opacity: 0.85;
+        border-radius: 16px;
+        filter: blur(0.5px);
+    }
+    80% {
+        transform: scale(0.9) translateX(150px) translateY(80px) rotate(2deg);
+        opacity: 0.95;
+        border-radius: 12px;
+        filter: blur(0px);
+    }
+    100% {
+        transform: scale(1) translateX(0) translateY(0) rotate(0deg);
+        opacity: 1;
+        border-radius: var(--radius-lg);
+        filter: blur(0px);
+    }
+}
+
+/* Modal maximize state */
+.modal.maximizing {
+    animation: maximizeToFullscreen 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    pointer-events: all;
+    transform-origin: center center;
+}
+
+/* Modal restore from fullscreen state */
+.modal.restoring-fullscreen {
+    animation: restoreFromFullscreen 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    pointer-events: all;
+    transform-origin: center center;
+}
+
+/* Modal close state */
+.modal.closing {
+    animation: closeModal 0.5s ease-in forwards;
+    pointer-events: none;
+    transform-origin: center center;
+    z-index: 2000;
+}
+
+/* Modal minimize state */
+.modal.minimizing {
+    animation: minimizeToCorner 0.8s cubic-bezier(0.55, 0.055, 0.675, 0.19) forwards;
+    pointer-events: none;
+    transform-origin: center center;
+    animation-fill-mode: forwards;
+}
+
+/* Modal restore state */
+.modal.restoring {
+    animation: restoreFromCorner 0.6s cubic-bezier(0.215, 0.61, 0.355, 1) forwards;
+    transform-origin: center center;
+    animation-fill-mode: forwards;
+}
+
+/* Enhanced fullscreen modal styling */
+.modal.fullscreen {
+    background: rgba(0, 0, 0, 0.95);
+    backdrop-filter: blur(30px);
+}
+
+.modal.fullscreen .modal-content {
+    width: 100vw;
+    height: 100vh;
+    max-width: none;
+    max-height: none;
+    border-radius: 0;
+    margin: 0;
+    transform: scale(1.05);
+    box-shadow: none;
+    border: none;
+}
+
+.modal.fullscreen .modal-header {
+    background: linear-gradient(135deg, var(--surface) 0%, rgba(255, 255, 255, 0.1) 100%);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: var(--space-md);
+}
+
+.modal.fullscreen .modal-body {
+    background: var(--surface);
+    padding: var(--space-lg);
+}
+
+/* Reset animation when showing modal - Fix view issue */
+.modal:not(.hidden):not(.minimizing):not(.restoring):not(.minimized):not(.closing):not(.maximizing):not(.restoring-fullscreen) {
+    animation: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: flex !important;
+    position: fixed !important;
+    right: auto !important;
+    bottom: auto !important;
+    z-index: 1000 !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* Ensure modals can be viewed normally - Remove duplicate rules */
+
+.modal.hidden {
+    display: none !important;
+}
+/* macOS Window Controls - Simple flexbox approach */
+.macos-window-controls {
+    /* position: absolute; */
+    /* left: 15px;
+    top: 68px; */
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px;
+    z-index: 1001;
+    /* background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    padding: 6px 10px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1); */
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Force horizontal layout for all macOS button containers - use absolute positioning */
+.macos-window-controls,
+#noteModal .macos-window-controls,
+.note-view-content .macos-window-controls,
+#cropModal .macos-window-controls,
+#folderModal .macos-window-controls {
+    display: block !important;
+    position: relative !important;
+    width: 72px !important;
+    height: 24px !important;
+}
+
+/* All macOS buttons use absolute positioning within container */
+.macos-btn,
+.close-btn-macos,
+.minimize-btn-macos,
+.fullscreen-btn-macos {
+    position: absolute !important;
+    display: block !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+}
+.note-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-xs) 0;
+    position: relative;
+    min-height: 40px;
+}
+
+.note-title-section {
+    flex: 1;
+    text-align: center;
+    padding: 0 20px; /* Reduced padding since buttons are no longer in center */
+}
+
+.note-title-section h3 {
+    transition: all 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.note-actions-section {
+    width: 60px; /* Fixed width for balance */
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* Special positioning for note view modal */
+.note-view-content .macos-window-controls {
+    /* position: absolute;
+    left: 15px;
+    top: 15px; */
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 8px;
+    z-index: 1001;
+    /* background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    padding: 6px 10px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1); */
+    opacity: 1;
+    visibility: visible;
+}
+
+.macos-btn {
+    width: 12px !important;
+    height: 12px !important;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+    position: relative;
+    opacity: 1;
+    visibility: visible;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+}
+
 .close-btn-macos {
-    width: 20px;
-    height: 20px;
+    background: #ff5f57;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    display: block !important;
+    opacity: 1;
+    visibility: visible;
+    width: 12px !important;
+    height: 12px !important;
+    position: absolute !important;
+    left: 0px;
+    top: 50%;
+    transform: translateY(-50%);
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.close-btn-macos:hover {
+    background: #ff4742;
+    transform: translateY(-50%) scale(1.1);
+}
+
+.minimize-btn-macos {
+    background: #ffbd2e;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    display: block !important;
+    opacity: 1;
+    visibility: visible;
+    width: 12px !important;
+    height: 12px !important;
+    position: absolute !important;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.minimize-btn-macos:hover {
+    background: #ffaa00;
+    transform: translateY(-50%) scale(1.1);
+}
+
+.fullscreen-btn-macos {
+    background: #28cd41 !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    width: 12px !important;
+    height: 12px !important;
+    position: absolute !important;
+    left: 40px;
+    top: 50%;
+    transform: translateY(-50%);
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.fullscreen-btn-macos:hover {
+    background: #1fb035 !important;
+    transform: translateY(-50%) scale(1.1);
+}
+
+.macos-btn:active {
+    transform: scale(0.9);
+}
+
+/* Button Icons - Authentic macOS Style */
+.macos-btn-icon {
+    width: 6px;
+    height: 1px;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 0.5px;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+}
+
+.macos-btn:hover .macos-btn-icon {
+    opacity: 1;
+}
+
+/* Close icon (×) */
+.close-btn-macos .macos-btn-icon {
+    width: 1px;
+    height: 6px;
+    transform: translate(-50%, -50%) rotate(45deg) !important;
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+}
+
+.close-btn-macos .macos-btn-icon::before {
+    content: '';
+    position: absolute;
+    width: 6px;
+    height: 1px;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 0.5px;
+    top: 2.5px;
+    left: -2.5px;
+    transform: rotate(90deg);
+}
+
+/* Fullscreen icon (diagonal arrows) */
+.fullscreen-btn-macos .macos-btn-icon {
+    width: 6px;
+    height: 6px;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    border-radius: 1px;
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+}
+
+.fullscreen-btn-macos .macos-btn-icon::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    width: 2px;
+    height: 2px;
+    border-top: 1px solid rgba(255, 255, 255, 0.9);
+    border-left: 1px solid rgba(255, 255, 255, 0.9);
+}
+
+.fullscreen-btn-macos .macos-btn-icon::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    right: -1px;
+    width: 2px;
+    height: 2px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.9);
+    border-right: 1px solid rgba(255, 255, 255, 0.9);
+}
+
+/* Close button - keep original styling but update positioning */
+.close-btn-macos {
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
     border: none;
     background: #ff5f57;
@@ -825,18 +1650,214 @@ body {
     justify-content: center;
     transition: all 0.2s ease;
     box-shadow: 0 2px 4px rgba(255, 95, 87, 0.3);
-    position: relative;
+    position: absolute;
+    right: var(--space-sm);
+    top: 50%;
+    transform: translateY(-50%);
     flex-shrink: 0;
+    z-index: 10;
 }
 
 .close-btn-macos:hover {
     background: #ff4742;
-    transform: scale(1.1);
-    box-shadow: 0 3px 8px rgba(255, 95, 87, 0.4);
+    transform: translateY(-50%) scale(1.05);
+    box-shadow: 0 4px 8px rgba(255, 95, 87, 0.4);
 }
 
 .close-btn-macos:active {
-    transform: scale(0.95);
+    transform: translateY(-50%) scale(0.95);
+}
+
+/* Fullscreen modal mode - Apple-style Animation */
+.modal.fullscreen {
+    padding: 0;
+    background: var(--surface);
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10000;
+    animation: fullscreenEnter 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@keyframes fullscreenEnter {
+    0% {
+        transform: scale(0.95);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.modal.fullscreen .modal-content {
+    width: 100vw;
+    height: 100vh;
+    max-width: none;
+    max-height: none;
+    border-radius: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    box-shadow: none;
+    animation: contentScale 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@keyframes contentScale {
+    0% {
+        transform: scale(0.98);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.modal.fullscreen .modal-header {
+    padding: 28px var(--space-lg);
+    min-height: 80px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    animation: headerExpand 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@keyframes headerExpand {
+    0% {
+        padding: var(--space-sm) var(--space-md);
+        min-height: 50px;
+    }
+    100% {
+        padding: 28px var(--space-lg);
+        min-height: 80px;
+    }
+}
+
+.modal.fullscreen .modal-header h3 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    animation: titleScale 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@keyframes titleScale {
+    0% {
+        font-size: var(--text-lg);
+        font-weight: 600;
+        letter-spacing: 0;
+        transform: translateY(0);
+    }
+    100% {
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        transform: translateY(0);
+    }
+}
+
+.modal.fullscreen .modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-2xl);
+    animation: bodyFadeIn 0.4s ease 0.1s both;
+}
+
+@keyframes bodyFadeIn {
+    0% {
+        opacity: 0.7;
+        transform: translateY(8px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Fullscreen exit animation */
+.modal.fullscreen-exit {
+    animation: fullscreenExit 0.25s cubic-bezier(0.4, 0, 1, 1);
+}
+
+@keyframes fullscreenExit {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(0.98);
+        opacity: 0.9;
+    }
+}
+
+/* Minimized modal mode - allow full interaction behind */
+.modal.minimized {
+    pointer-events: none;
+    z-index: -1;
+    visibility: hidden;
+}
+
+.modal.minimized .modal-content {
+    transform: scale(0.05) translateY(100vh);
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Restore animation */
+.modal.restoring {
+    visibility: visible !important;
+    pointer-events: auto !important;
+    z-index: 9999 !important;
+}
+
+.modal.restoring .modal-content {
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform: scale(1) translateY(0);
+    opacity: 1;
+}
+
+/* Minimized modal indicators */
+.minimized-indicator {
+    position: fixed;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    max-width: 200px;
+    margin-bottom: 8px;
+}
+
+.minimized-indicator:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    background: rgba(255, 255, 255, 1);
+}
+
+.minimized-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.minimized-icon {
+    font-size: 16px;
+}
+
+.minimized-title {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .close-dot {
@@ -852,25 +1873,36 @@ body {
     opacity: 1;
 }
 
-/* Ensure consistent header layout for all modals */
+/* Ensure modal headers have proper spacing for macOS controls */
 .modal-header {
-    padding: var(--space-lg) var(--space-xl);
+    padding: 50px var(--space-md) var(--space-sm) var(--space-md); /* Extra top padding for macOS controls */
     border-bottom: 1px solid var(--border);
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     background: var(--surface);
-    border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
-    flex-shrink: 0;
-    min-height: 48px;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    position: relative;
+    min-height: 50px;
 }
 
 .modal-header h3 {
     margin: 0;
-    color: var(--text-primary);
-    flex: 1;
-    font-size: var(--font-size-lg);
+    font-size: var(--text-lg);
     font-weight: 600;
+    color: var(--text-primary);
+    text-align: center;
+    flex: 1;
+    padding: 0 100px; /* More space for authentic macOS positioning */
+    transition: all 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.modal-header .close-btn {
+    position: absolute;
+    right: var(--space-sm);
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
 }
 
 .modal-body {
@@ -883,14 +1915,14 @@ body {
 #noteModal .modal-body {
     padding: var(--space-lg) var(--space-3xl);
     overflow-y: auto;
-    max-height: calc(90vh - 120px); /* Account for header height */
+    max-height: calc(100vh - 160px); /* Account for header height and margins */
 }
 
 /* Standard padding for note preview modal */
 #noteViewModal .modal-body {
     padding: var(--space-xl) var(--space-2xl);
     overflow-y: auto;
-    max-height: calc(90vh - 120px);
+    max-height: calc(100vh - 160px); /* Account for header height and margins */
 }
 
 /* Note View Styles */
@@ -1264,22 +2296,24 @@ body {
 .note-editor .ql-editor img {
     max-width: 100%;
     height: auto;
-    border-radius: 8px;
-    margin: 1rem 0;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s ease;
+    border-radius: var(--radius-md);
+    margin: var(--space-md) 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
 }
 
 .note-editor .ql-editor img:hover {
-    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: scale(1.01);
 }
 
 .note-editor .ql-editor iframe {
-    max-width: 100%;
+    max-width: 800px;
     width: 100%;
     border-radius: 8px;
-    margin: 1rem 0;
+    margin: 1rem auto;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    display: block;
 }
 
 /* Apple-inspired Quill Toolbar Styling */
@@ -1807,23 +2841,25 @@ body {
 }
 
 .note-view-content-text iframe {
-    max-width: 100%;
+    max-width: 800px;
     width: 100%;
     height: auto;
     aspect-ratio: 16/9;
     border-radius: 8px;
-    margin: 1rem 0;
+    margin: 1rem auto;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     border: none;
+    display: block;
 }
 
 .note-view-content-text video {
-    max-width: 100%;
+    max-width: 800px;
     width: 100%;
     height: auto;
     border-radius: 8px;
-    margin: 1rem 0;
+    margin: 1rem auto;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    display: block;
 }
 
 /* Note Card Content with Rich Text */
@@ -2174,19 +3210,24 @@ body {
     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
-/* Custom Confirmation Dialog Styles */
+/* macOS Alert Dialog Styles */
 .confirm-dialog-content {
-    max-width: 450px;
-    border-radius: 16px;
+    max-width: 420px;
+    border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    animation: confirmSlideIn 0.3s ease-out;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 
+                0 0 0 1px rgba(255, 255, 255, 0.1);
+    animation: macosAlertSlideIn 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-@keyframes confirmSlideIn {
+@keyframes macosAlertSlideIn {
     from {
         opacity: 0;
-        transform: scale(0.8) translateY(-30px);
+        transform: scale(0.92) translateY(-20px);
     }
     to {
         opacity: 1;
@@ -2195,129 +3236,188 @@ body {
 }
 
 .confirm-dialog-header {
-    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
-    color: white;
-    padding: 24px;
+    background: none;
+    color: #1d1d1f;
+    padding: 24px 24px 8px 24px;
     text-align: center;
     position: relative;
 }
 
 .confirm-icon {
-    font-size: 2.5rem;
-    margin-bottom: 12px;
-    opacity: 0.9;
+    font-size: 3rem;
+    margin-bottom: 16px;
+    opacity: 1;
+    color: #007AFF;
+}
+
+.confirm-icon .fa-exclamation-triangle {
+    color: #FF9500;
+}
+
+.confirm-icon .fa-check-circle {
+    color: #34C759;
+}
+
+.confirm-icon .fa-info-circle {
+    color: #007AFF;
 }
 
 .confirm-dialog-header h3 {
     margin: 0;
-    font-size: 1.3rem;
+    font-size: 17px;
     font-weight: 600;
-    letter-spacing: 0.5px;
+    letter-spacing: -0.4px;
+    line-height: 1.3;
+    color: #1d1d1f;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
 }
 
 .confirm-dialog-body {
-    padding: 24px;
+    padding: 8px 24px 24px 24px;
     text-align: center;
-    background: white;
+    background: none;
 }
 
 .confirm-dialog-body p {
     margin: 0;
-    color: #555;
-    font-size: 15px;
-    line-height: 1.6;
+    color: #86868b;
+    font-size: 13px;
+    line-height: 1.5;
     white-space: pre-line;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+    font-weight: 400;
+    letter-spacing: -0.08px;
 }
 
 .confirm-dialog-actions {
-    padding: 20px 24px 24px 24px;
-    background: white;
+    padding: 0 24px 24px 24px;
+    background: none;
     display: flex;
-    gap: 12px;
+    gap: 8px;
     justify-content: center;
 }
 
 .confirm-dialog-actions .btn-secondary,
-.confirm-dialog-actions .btn-danger {
-    padding: 12px 24px;
+.confirm-dialog-actions .btn-danger,
+.confirm-dialog-actions .btn-warning,
+.confirm-dialog-actions .btn-success,
+.confirm-dialog-actions .btn-primary {
+    padding: 8px 20px;
     border: none;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s ease;
-    min-width: 100px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    transition: all 0.15s ease;
+    min-width: 80px;
+    text-transform: none;
+    letter-spacing: -0.08px;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
+/* macOS Cancel Button (Secondary) */
 .confirm-dialog-actions .btn-secondary {
-    background: #6c757d;
-    color: white;
+    background: rgba(142, 142, 147, 0.12);
+    color: #007AFF;
+    border: 0.5px solid rgba(0, 122, 255, 0.2);
 }
 
 .confirm-dialog-actions .btn-secondary:hover {
-    background: #5a6268;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+    background: rgba(0, 122, 255, 0.08);
+    border-color: rgba(0, 122, 255, 0.3);
+    transform: none;
+    box-shadow: none;
 }
 
+.confirm-dialog-actions .btn-secondary:active {
+    background: rgba(0, 122, 255, 0.15);
+    transform: scale(0.98);
+}
+
+/* macOS Primary Action Button */
 .confirm-dialog-actions .btn-danger {
-    background: #dc3545;
+    background: #FF3B30;
     color: white;
 }
 
 .confirm-dialog-actions .btn-danger:hover {
-    background: #c82333;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+    background: #FF2D20;
+    transform: none;
+    box-shadow: none;
+}
+
+.confirm-dialog-actions .btn-danger:active {
+    background: #E6251A;
+    transform: scale(0.98);
 }
 
 .confirm-dialog-actions .btn-warning {
-    background: #ffc107;
-    color: #333;
+    background: #FF9500;
+    color: white;
 }
 
 .confirm-dialog-actions .btn-warning:hover {
-    background: #ffb300;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4);
+    background: #FF8800;
+    transform: none;
+    box-shadow: none;
+}
+
+.confirm-dialog-actions .btn-warning:active {
+    background: #E67A00;
+    transform: scale(0.98);
 }
 
 .confirm-dialog-actions .btn-success {
-    background: #28a745;
+    background: #34C759;
     color: white;
 }
 
 .confirm-dialog-actions .btn-success:hover {
-    background: #218838;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+    background: #30B354;
+    transform: none;
+    box-shadow: none;
+}
+
+.confirm-dialog-actions .btn-success:active {
+    background: #2A9E48;
+    transform: scale(0.98);
 }
 
 .confirm-dialog-actions .btn-primary {
-    background: #667eea;
+    background: #007AFF;
     color: white;
 }
 
 .confirm-dialog-actions .btn-primary:hover {
-    background: #5a6fd8;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    background: #0056CC;
+    transform: none;
+    box-shadow: none;
 }
 
-/* Different dialog types */
-.confirm-dialog-content.warning .confirm-dialog-header {
-    background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%);
-    color: #333;
+.confirm-dialog-actions .btn-primary:active {
+    background: #004999;
+    transform: scale(0.98);
 }
 
-.confirm-dialog-content.success .confirm-dialog-header {
-    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+/* Different dialog types - subtle differences for macOS */
+.confirm-dialog-content.warning .confirm-icon {
+    color: #FF9500;
 }
 
-.confirm-dialog-content.info .confirm-dialog-header {
-    background: linear-gradient(135deg, #17a2b8 0%, #6f42c1 100%);
+.confirm-dialog-content.success .confirm-icon {
+    color: #34C759;
+}
+
+.confirm-dialog-content.info .confirm-icon {
+    color: #007AFF;
+}
+
+.confirm-dialog-content.danger .confirm-icon {
+    color: #FF3B30;
 }
 
 /* Responsive Design */
@@ -2369,12 +3469,26 @@ body {
     }
 
     /* Mobile modal body padding */
+    #noteModal .modal-content {
+        width: calc(100vw - 40px) !important;
+        height: calc(100vh - 40px) !important;
+        max-height: calc(100vh - 40px) !important;
+    }
+
+    #noteViewModal .modal-content {
+        width: calc(100vw - 40px) !important;
+        height: calc(100vh - 40px) !important;
+        max-height: calc(100vh - 40px) !important;
+    }
+
     #noteModal .modal-body {
         padding: var(--space-md) var(--space-lg) !important;
+        max-height: calc(100vh - 120px) !important;
     }
 
     #noteViewModal .modal-body {
         padding: var(--space-lg) var(--space-lg) !important;
+        max-height: calc(100vh - 120px) !important;
     }
 
     /* Mobile note preview content */
@@ -2636,5 +3750,28 @@ body {
         min-height: 32px;
         padding: 8px;
         font-size: 14px;
+    }
+}
+
+/* Large Desktop Screens - More spacing for better proportion */
+@media (min-width: 1400px) {
+    #noteModal .modal-content {
+        width: calc(100vw - 120px);
+        height: calc(100vh - 120px);
+        max-height: calc(100vh - 120px);
+    }
+
+    #noteViewModal .modal-content {
+        width: calc(100vw - 120px);
+        height: calc(100vh - 120px);
+        max-height: calc(100vh - 120px);
+    }
+
+    #noteModal .modal-body {
+        max-height: calc(100vh - 200px);
+    }
+
+    #noteViewModal .modal-body {
+        max-height: calc(100vh - 200px);
     }
 }

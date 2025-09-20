@@ -106,30 +106,53 @@
     <div id="noteViewModal" class="modal hidden">
         <div class="modal-content note-view-content">
             <div class="modal-header">
-                <div class="note-nav-section">
-                    <button id="prevNoteBtn" class="nav-btn" title="Previous Note">
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
+                <!-- Title row with macOS controls -->
+                <div class="note-title-row">
+                    <div class="macos-window-controls">
+                        <button id="closeViewModal" class="macos-btn close-btn-macos" title="Close">
+                            <span class="macos-btn-icon"></span>
+                        </button>
+                        <button id="minimizeViewModal" class="macos-btn minimize-btn-macos" title="Minimize">
+                            <span class="macos-btn-icon"></span>
+                        </button>
+                        <button id="fullscreenViewModal" class="macos-btn fullscreen-btn-macos" title="Maximize">
+                            <span class="macos-btn-icon"></span>
+                        </button>
+                    </div>
+                    <div class="note-title-section">
+                        <h3 id="viewNoteTitle">Note Title</h3>
+                    </div>
+                    <div class="note-actions-section">
+                        <!-- Empty div for layout balance -->
+                    </div>
                 </div>
-                <div class="note-title-section">
-                    <h3 id="viewNoteTitle">Note Title</h3>
-                </div>
-                <div class="note-actions-section">
-                    <button id="editNoteBtn" class="btn-icon" title="Edit Note">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button id="deleteNoteBtn" class="btn-icon delete" title="Delete Note">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                    <button id="nextNoteBtn" class="nav-btn" title="Next Note">
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
-                    <button id="closeViewModal" class="close-btn-macos">
-                        <span class="close-dot"></span>
-                    </button>
+                <!-- Controls row with navigation and search -->
+                <div class="note-controls-row">
+                    <div class="note-nav-left">
+                        <button id="prevNoteBtn" class="nav-btn" title="Previous Note">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                    </div>
+                    <div class="note-search-section">
+                        <input type="text" id="noteSearchInput" class="search-input-bar" placeholder="Search in note...">
+                        <button id="editNoteBtn" class="btn-icon" title="Edit Note">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button id="deleteNoteBtn" class="btn-icon delete" title="Delete Note">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    <div class="note-nav-right">
+                        <button id="nextNoteBtn" class="nav-btn" title="Next Note">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
             <div class="modal-body">
+                <!-- Search result info -->
+                <div id="searchInfo" class="search-info"></div>
+                
                 <div id="viewNoteImage" class="note-image-container hidden">
                     <img id="viewNoteImg" src="" alt="Note image">
                 </div>
@@ -143,10 +166,25 @@
     <div id="noteModal" class="modal hidden">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="modalTitle">Add Note</h3>
-                <button id="closeModal" class="close-btn-macos">
-                    <span class="close-dot"></span>
-                </button>
+                <div class="note-title-row">
+                    <div class="macos-window-controls">
+                        <button id="closeModal" class="macos-btn close-btn-macos" title="Close">
+                            <span class="macos-btn-icon"></span>
+                        </button>
+                        <button id="minimizeModal" class="macos-btn minimize-btn-macos" title="Minimize">
+                            <span class="macos-btn-icon"></span>
+                        </button>
+                        <button id="fullscreenModal" class="macos-btn fullscreen-btn-macos" title="Fullscreen">
+                            <span class="macos-btn-icon"></span>
+                        </button>
+                    </div>
+                    <div class="note-title-section">
+                        <h3 id="modalTitle">Add Note</h3>
+                    </div>
+                    <div class="note-actions-section">
+                        <!-- Empty section for balance -->
+                    </div>
+                </div>
             </div>
             <div class="modal-body">
                 <form id="noteForm">
@@ -188,10 +226,18 @@
     <div id="cropModal" class="modal hidden">
         <div class="modal-content crop-modal-content">
             <div class="modal-header">
+                <div class="macos-window-controls">
+                    <button id="closeCropModal" class="macos-btn close-btn-macos" title="Close">
+                        <span class="macos-btn-icon"></span>
+                    </button>
+                    <button id="minimizeCropModal" class="macos-btn minimize-btn-macos" title="Minimize">
+                        <span class="macos-btn-icon"></span>
+                    </button>
+                    <button id="fullscreenCropModal" class="macos-btn fullscreen-btn-macos" title="Fullscreen">
+                        <span class="macos-btn-icon"></span>
+                    </button>
+                </div>
                 <h3>Crop Image</h3>
-                <button id="closeCropModal" class="close-btn-macos">
-                    <span class="close-dot"></span>
-                </button>
             </div>
             <div class="modal-body">
                 <div class="crop-instructions">
@@ -214,10 +260,18 @@
     <div id="folderModal" class="modal hidden">
         <div class="modal-content">
             <div class="modal-header">
+                <div class="macos-window-controls">
+                    <button id="closeFolderModal" class="macos-btn close-btn-macos" title="Close">
+                        <span class="macos-btn-icon"></span>
+                    </button>
+                    <button id="minimizeFolderModal" class="macos-btn minimize-btn-macos" title="Minimize">
+                        <span class="macos-btn-icon"></span>
+                    </button>
+                    <button id="fullscreenFolderModal" class="macos-btn fullscreen-btn-macos" title="Maximize">
+                        <span class="macos-btn-icon"></span>
+                    </button>
+                </div>
                 <h3>Add Folder</h3>
-                <button id="closeFolderModal" class="close-btn-macos">
-                    <span class="close-dot"></span>
-                </button>
             </div>
             <div class="modal-body">
                 <form id="folderForm">

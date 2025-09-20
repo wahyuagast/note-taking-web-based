@@ -31,7 +31,7 @@ const loginPage = document.getElementById('loginPage');
 const mainApp = document.getElementById('mainApp');
 const loginForm = document.getElementById('loginForm');
 const logoutBtn = document.getElementById('logoutBtn');
-const searchInput = document.getElementById('searchInput');
+const searchInput = document.getElementById('searchInput'); // Main search for notes
 const addFolderBtn = document.getElementById('addFolderBtn');
 const addNoteBtn = document.getElementById('addNoteBtn');
 const foldersList = document.getElementById('foldersList');
@@ -57,6 +57,28 @@ document.addEventListener('DOMContentLoaded', function() {
     loadFolders();
     loadNotes();
     
+    // Initialize macOS window controls
+    initializeMacOSControls();
+    
+    // Setup mutation observer to watch for new modals
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            mutation.addedNodes.forEach((node) => {
+                if (node.nodeType === Node.ELEMENT_NODE && node.classList && node.classList.contains('modal')) {
+                    console.log('New modal detected:', node.id);
+                    setTimeout(() => {
+                        setupModalControls(node);
+                    }, 100);
+                }
+            });
+        });
+    });
+    
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+    
     // Initialize Quill editor if main app is already visible
     if (!mainApp.classList.contains('hidden')) {
         setTimeout(() => {
@@ -73,8 +95,7 @@ function setupEventListeners() {
     loginForm.addEventListener('submit', handleLogin);
     logoutBtn.addEventListener('click', handleLogout);
     
-    // Search
-    searchInput.addEventListener('input', handleSearch);
+    // Search - removed duplicate listener, will be set up in modal
     
     // Folders
     addFolderBtn.addEventListener('click', showAddFolderModal);
@@ -91,8 +112,24 @@ function setupEventListeners() {
     // Modal Close - Note View
     document.getElementById('closeViewModal').addEventListener('click', hideNoteViewModal);
     document.getElementById('editNoteBtn').addEventListener('click', () => {
-        hideNoteViewModal();
-        showEditNoteModal(currentViewingNote);
+        console.log('Edit button clicked, currentViewingNote:', currentViewingNote, 'type:', typeof currentViewingNote);
+        if (currentViewingNote) {
+            // Save the note ID before hiding the modal (which sets currentViewingNote to null)
+            const noteIdToEdit = currentViewingNote;
+            console.log('Saved noteIdToEdit before hiding modal:', noteIdToEdit, 'type:', typeof noteIdToEdit);
+            
+            hideNoteViewModal();
+            
+            console.log('After hideNoteViewModal, currentViewingNote:', currentViewingNote);
+            console.log('Passing noteIdToEdit to showEditNoteModal:', noteIdToEdit);
+            showEditNoteModal(noteIdToEdit);
+        } else {
+            showAppleStyleAlert({
+                title: 'Error',
+                message: 'No note selected for editing.',
+                type: 'warning'
+            });
+        }
     });
     document.getElementById('deleteNoteBtn').addEventListener('click', () => {
         deleteNote(currentViewingNote);
@@ -198,6 +235,9 @@ function initializeQuillEditor() {
         ]
     });
 
+    // Setup image resize functionality
+    setupImageResizeInEditor();
+
     // Custom image handler
     function imageHandler() {
         const input = document.createElement('input');
@@ -208,6 +248,9 @@ function initializeQuillEditor() {
         input.onchange = () => {
             const file = input.files[0];
             if (file) {
+                // Get cursor position before processing
+                const range = quillEditor.getSelection(true);
+                
                 // Check file size (limit to 5MB for inline images)
                 if (file.size > 5 * 1024 * 1024) {
                     showCustomAlert({
@@ -220,10 +263,8 @@ function initializeQuillEditor() {
 
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    // Get cursor position and insert image
-                    const range = quillEditor.getSelection(true);
-                    quillEditor.insertEmbed(range.index, 'image', e.target.result);
-                    quillEditor.setSelection(range.index + 1);
+                    // Process image with auto-resize for inline editor
+                    processImageForInlineEditor(e.target.result, range);
                 };
                 reader.readAsDataURL(file);
             }
@@ -346,6 +387,679 @@ function initializeQuillEditor() {
     });
 }
 
+// Image resize functionality in editor
+function setupImageResizeInEditor() {
+    console.log('setupImageResizeInEditor called - using safe mode');
+    
+    // Add mutation observer to detect new images with safe approach
+    const editor = document.querySelector('#noteContentEditor .ql-editor');
+    if (!editor) return;
+
+    // Disconnect any existing observer first
+    if (window.imageObserver) {
+        window.imageObserver.disconnect();
+    }
+
+    // For now, disable MutationObserver to prevent Quill conflicts
+    // Just process existing images with basic styling
+    const images = editor.querySelectorAll('img:not(.resizable-processed)');
+    images.forEach(img => {
+        img.classList.add('resizable-processed');
+        img.style.maxWidth = '100%';
+        img.style.height = 'auto';
+        img.style.borderRadius = '8px';
+        img.style.margin = '8px 0';
+        console.log('Applied basic styling to image');
+    });
+    
+    console.log(`Processed ${images.length} images with basic styling`);
+}
+
+// Open image resize modal for safe resizing
+function openImageResizeModal(img) {
+    console.log('Opening resize modal for image');
+    
+    // Create modal if it doesn't exist
+    let resizeModal = document.getElementById('imageResizeModal');
+    if (!resizeModal) {
+        resizeModal = createImageResizeModal();
+    }
+    
+    // Store reference to the image being resized
+    resizeModal.targetImage = img;
+    
+    // Get current image dimensions
+    const currentWidth = img.style.width || '100%';
+    const currentHeight = img.style.height || 'auto';
+    
+    // Set modal content
+    document.getElementById('resizePreviewImg').src = img.src;
+    document.getElementById('widthSlider').value = parseFloat(currentWidth) || 100;
+    document.getElementById('widthValue').textContent = Math.round(parseFloat(currentWidth) || 100) + '%';
+    
+    // Show modal
+    resizeModal.classList.remove('hidden');
+}
+
+// Create the image resize modal
+function createImageResizeModal() {
+    const modal = document.createElement('div');
+    modal.id = 'imageResizeModal';
+    modal.className = 'modal hidden';
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <div class="macos-window-controls">
+                    <button id="closeResizeModal" class="macos-btn close-btn-macos" title="Close">
+                        <span class="macos-btn-icon"></span>
+                    </button>
+                    <button id="minimizeResizeModal" class="macos-btn minimize-btn-macos" title="Minimize">
+                        <span class="macos-btn-icon"></span>
+                    </button>
+                    <button id="fullscreenResizeModal" class="macos-btn fullscreen-btn-macos" title="Fullscreen">
+                        <span class="macos-btn-icon"></span>
+                    </button>
+                </div>
+                <h3>🖼️ Resize Image</h3>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <img id="resizePreviewImg" src="" alt="Preview" style="max-width: 300px; max-height: 200px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                </div>
+                
+                <div class="form-group">
+                    <label for="widthSlider">Width: <span id="widthValue">100%</span></label>
+                    <input type="range" id="widthSlider" min="10" max="100" value="100" 
+                           style="width: 100%; margin: 10px 0; height: 6px; border-radius: 3px; background: #ddd; outline: none;">
+                </div>
+                
+                <div style="display: flex; gap: 10px; margin-top: 20px; font-size: 14px; color: #666;">
+                    <div style="text-align: center; flex: 1;">
+                        <div style="font-weight: 500;">Small</div>
+                        <div>25-50%</div>
+                    </div>
+                    <div style="text-align: center; flex: 1;">
+                        <div style="font-weight: 500;">Medium</div>
+                        <div>50-75%</div>
+                    </div>
+                    <div style="text-align: center; flex: 1;">
+                        <div style="font-weight: 500;">Large</div>
+                        <div>75-100%</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button type="button" id="cancelResize" class="btn-secondary">Cancel</button>
+                <button type="button" id="applyResize" class="btn-primary">Apply</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Setup macOS controls for this new modal
+    setupModalControls(modal);
+    
+    // Add event listeners
+    const widthSlider = modal.querySelector('#widthSlider');
+    const widthValue = modal.querySelector('#widthValue');
+    const previewImg = modal.querySelector('#resizePreviewImg');
+    
+    widthSlider.addEventListener('input', function() {
+        const value = this.value;
+        widthValue.textContent = value + '%';
+        previewImg.style.width = value + '%';
+    });
+    
+    modal.querySelector('#closeResizeModal').addEventListener('click', () => {
+        modal.classList.add('hidden');
+    });
+    
+    modal.querySelector('#cancelResize').addEventListener('click', () => {
+        modal.classList.add('hidden');
+    });
+    
+    modal.querySelector('#applyResize').addEventListener('click', () => {
+        applyImageResize(modal);
+    });
+    
+    return modal;
+}
+
+// Apply the resize to the target image
+function applyImageResize(modal) {
+    const targetImage = modal.targetImage;
+    const newWidth = document.getElementById('widthSlider').value + '%';
+    
+    if (targetImage) {
+        targetImage.style.width = newWidth;
+        targetImage.style.height = 'auto';
+        
+        // Update editor content
+        if (quillEditor) {
+            const content = quillEditor.root.innerHTML;
+            document.getElementById('noteContent').value = content;
+            hasUnsavedChanges = true;
+        }
+        
+        showToast(`Image resized to ${newWidth}`, 'success');
+        
+        console.log('Image resized to:', newWidth);
+    }
+    
+    modal.classList.add('hidden');
+    
+    // Re-initialize macOS controls for any new modals
+    setTimeout(() => {
+        initializeMacOSControls();
+    }, 100);
+}
+
+// macOS Window Controls functionality
+function initializeMacOSControls() {
+    console.log('Initializing macOS window controls');
+    
+    // Get all existing modals
+    const modals = document.querySelectorAll('.modal');
+    
+    modals.forEach(modal => {
+        setupModalControls(modal);
+    });
+}
+
+// Setup controls for a specific modal
+function setupModalControls(modal) {
+    const modalId = modal.id;
+    console.log('Setting up controls for modal:', modalId);
+    
+    // Skip modals that don't have macOS controls (like confirmDialog)
+    const macosControls = modal.querySelector('.macos-window-controls');
+    if (!macosControls) {
+        console.log('No macOS controls found in modal:', modalId, '- skipping');
+        return;
+    }
+    
+    // Remove existing event listeners to prevent duplicates
+    const closeBtn = modal.querySelector('.close-btn-macos');
+    const minimizeBtn = modal.querySelector('.minimize-btn-macos');
+    const fullscreenBtn = modal.querySelector('.fullscreen-btn-macos');
+    
+    console.log('Found close button:', !!closeBtn);
+    console.log('Found minimize button:', !!minimizeBtn);
+    console.log('Found maximize button:', !!fullscreenBtn);
+    
+    if (closeBtn && !closeBtn.dataset.initialized) {
+        closeBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            closeModalWithAnimation(modal);
+        });
+        closeBtn.dataset.initialized = 'true';
+        console.log('Added close handler for', modalId);
+    }
+    
+    if (minimizeBtn && !minimizeBtn.dataset.initialized) {
+        minimizeBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            minimizeModal(modal);
+        });
+        minimizeBtn.dataset.initialized = 'true';
+        console.log('Added minimize handler for', modalId);
+    }
+    
+    if (fullscreenBtn && !fullscreenBtn.dataset.initialized) {
+        fullscreenBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleFullscreen(modal);
+        });
+        fullscreenBtn.dataset.initialized = 'true';
+        console.log('Added maximize handler for', modalId);
+    } else if (!fullscreenBtn) {
+        console.error('Maximize button not found in modal:', modalId);
+    }
+}
+
+// Simple toast notification system
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.textContent = message;
+    
+    // Style the toast
+    toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'success' ? '#28cd41' : type === 'error' ? '#ff5f57' : '#007AFF'};
+        color: white;
+        padding: 12px 16px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        z-index: 10000;
+        opacity: 0;
+        transform: translateX(100%);
+        transition: all 0.3s ease;
+        max-width: 300px;
+        backdrop-filter: blur(10px);
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Animate in
+    setTimeout(() => {
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateX(0)';
+    }, 10);
+    
+    // Auto remove after 1.5 seconds
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 300);
+    }, 1500);
+}
+
+// Minimize modal functionality
+function minimizeModal(modal) {
+    console.log('Minimizing modal:', modal.id);
+    
+    // If already minimized, don't do anything
+    if (modal.classList.contains('minimized')) {
+        return;
+    }
+    
+    // Add minimizing animation class
+    modal.classList.add('minimizing');
+    
+    // Wait for animation to complete before hiding
+    setTimeout(() => {
+        modal.classList.add('minimized');
+        modal.classList.remove('minimizing');
+        
+        // Create minimize indicator in taskbar area
+        createMinimizedIndicator(modal);
+        
+        showToast('Modal minimized', 'info');
+    }, 800); // Match animation duration
+}
+
+// Restore modal from minimized state
+function restoreModal(modal) {
+    console.log('Restoring modal:', modal.id);
+    
+    // Make modal visible and interactive again
+    modal.style.visibility = 'visible';
+    modal.style.zIndex = '9999';
+    modal.classList.add('restoring');
+    modal.classList.remove('minimized');
+    
+    setTimeout(() => {
+        modal.classList.remove('restoring');
+        modal.style.zIndex = ''; // Reset to default
+    }, 400);
+    
+    // Remove minimize indicator
+    removeMinimizedIndicator(modal.id);
+}
+
+// Toggle fullscreen mode with Apple-style animation
+function toggleFullscreen(modal) {
+    console.log('Toggling fullscreen for modal:', modal.id);
+    
+    const isFullscreen = modal.classList.contains('fullscreen');
+    
+    if (isFullscreen) {
+        // Exit fullscreen with animation
+        modal.classList.add('restoring-fullscreen');
+        
+        setTimeout(() => {
+            modal.classList.remove('fullscreen', 'restoring-fullscreen');
+        }, 400);
+        
+        showToast('Exited maximize mode', 'success');
+        
+        // Exit browser fullscreen if possible
+        if (document.exitFullscreen) {
+            document.exitFullscreen().catch(() => {
+                // Ignore errors - not all browsers support this
+            });
+        }
+    } else {
+        // Enter fullscreen with animation
+        modal.classList.add('maximizing');
+        
+        setTimeout(() => {
+            modal.classList.remove('maximizing');
+            modal.classList.add('fullscreen');
+        }, 400);
+        
+        showToast('Entered maximize mode', 'success');
+        
+        // Optional: Use browser fullscreen API for true fullscreen
+        // Commented out as it might be too aggressive for normal use
+        // if (modal.requestFullscreen) {
+        //     modal.requestFullscreen().catch(() => {
+        //         // Fallback to CSS fullscreen
+        //     });
+        // }
+    }
+}
+
+// Close modal with animation
+function closeModalWithAnimation(modal) {
+    console.log('Closing modal with animation:', modal.id);
+    
+    // Special handling for noteModal - check for unsaved changes
+    if (modal.id === 'noteModal') {
+        confirmCloseModal();
+        return;
+    }
+    
+    // Add closing animation class
+    modal.classList.add('closing');
+    
+    // Wait for animation to complete before hiding
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        modal.classList.remove('closing', 'fullscreen', 'minimized');
+        
+        // Specific close handlers for different modals
+        if (modal.id === 'noteViewModal') {
+            hideNoteViewModal();
+        } else if (modal.id === 'folderModal') {
+            hideFolderModal();
+        } else if (modal.id === 'cropModal') {
+            hideCropModal();
+        }
+        
+        showToast('Modal closed', 'error');
+    }, 500); // Match animation duration
+}
+
+// Create minimized modal indicator
+function createMinimizedIndicator(modal) {
+    // Remove existing indicator
+    removeMinimizedIndicator(modal.id);
+    
+    const indicator = document.createElement('div');
+    indicator.id = `minimized-${modal.id}`;
+    indicator.className = 'minimized-indicator';
+    
+    // Position based on existing indicators
+    const existingIndicators = document.querySelectorAll('.minimized-indicator');
+    const bottomOffset = 20 + (existingIndicators.length * 60);
+    
+    indicator.style.bottom = bottomOffset + 'px';
+    indicator.innerHTML = `
+        <div class="minimized-content">
+            <span class="minimized-icon">📄</span>
+            <span class="minimized-title">${getModalTitle(modal)}</span>
+        </div>
+    `;
+    
+    indicator.addEventListener('click', () => {
+        restoreModal(modal);
+    });
+    
+    // Add to body instead of header to avoid layout issues
+    document.body.appendChild(indicator);
+}
+
+// Remove minimized indicator
+function removeMinimizedIndicator(modalId) {
+    const indicator = document.getElementById(`minimized-${modalId}`);
+    if (indicator) {
+        indicator.remove();
+    }
+}
+
+// Get modal title for indicator
+function getModalTitle(modal) {
+    const titleElement = modal.querySelector('h3');
+    return titleElement ? titleElement.textContent : 'Modal';
+}
+
+function makeImageResizable(img) {
+    try {
+        // Avoid adding resize handles multiple times
+        if (!img || img.closest('.resizable-image-container')) return;
+        
+        console.log('Making image resizable:', img.src ? img.src.substring(0, 50) + '...' : 'no src');
+
+    // Create container
+    const container = document.createElement('div');
+    container.className = 'resizable-image-container';
+    container.style.cssText = `
+        position: relative;
+        display: inline-block;
+        border: 2px dashed transparent;
+        margin: 8px 0;
+    `;
+
+    // Wrap image in container
+    img.parentNode.insertBefore(container, img);
+    container.appendChild(img);
+
+    // Add resize handles
+    const handles = ['nw', 'ne', 'sw', 'se'];
+    handles.forEach(handle => {
+        const resizeHandle = document.createElement('div');
+        resizeHandle.className = `resize-handle resize-${handle}`;
+        resizeHandle.style.cssText = `
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: var(--primary-blue);
+            border: 1px solid white;
+            border-radius: 50%;
+            cursor: ${handle.includes('n') && handle.includes('w') || handle.includes('s') && handle.includes('e') ? 'nw-resize' : 'ne-resize'};
+            display: none;
+            z-index: 10;
+        `;
+
+        // Position handles
+        if (handle.includes('n')) resizeHandle.style.top = '-4px';
+        if (handle.includes('s')) resizeHandle.style.bottom = '-4px';
+        if (handle.includes('w')) resizeHandle.style.left = '-4px';
+        if (handle.includes('e')) resizeHandle.style.right = '-4px';
+
+        container.appendChild(resizeHandle);
+
+        // Add resize functionality
+        let isResizing = false;
+        let startX, startY, startWidth, startHeight;
+
+        resizeHandle.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            isResizing = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            startWidth = parseInt(getComputedStyle(img).width, 10);
+            startHeight = parseInt(getComputedStyle(img).height, 10);
+
+            document.addEventListener('mousemove', handleResize);
+            document.addEventListener('mouseup', stopResize);
+        });
+
+        function handleResize(e) {
+            if (!isResizing) return;
+
+            const deltaX = e.clientX - startX;
+            const deltaY = e.clientY - startY;
+            
+            let newWidth = startWidth;
+            let newHeight = startHeight;
+
+            if (handle.includes('e')) newWidth = startWidth + deltaX;
+            if (handle.includes('w')) newWidth = startWidth - deltaX;
+            if (handle.includes('s')) newHeight = startHeight + deltaY;
+            if (handle.includes('n')) newHeight = startHeight - deltaY;
+
+            // Maintain aspect ratio
+            const aspectRatio = img.naturalWidth / img.naturalHeight;
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                newHeight = newWidth / aspectRatio;
+            } else {
+                newWidth = newHeight * aspectRatio;
+            }
+
+            // Set minimum size
+            newWidth = Math.max(50, newWidth);
+            newHeight = Math.max(50, newHeight);
+
+            img.style.width = newWidth + 'px';
+            img.style.height = newHeight + 'px';
+        }
+
+        function stopResize() {
+            isResizing = false;
+            document.removeEventListener('mousemove', handleResize);
+            document.removeEventListener('mouseup', stopResize);
+        }
+    });
+
+    // Show/hide handles on hover
+    container.addEventListener('mouseenter', () => {
+        container.style.borderColor = 'var(--primary-blue)';
+        container.querySelectorAll('.resize-handle').forEach(handle => {
+            handle.style.display = 'block';
+        });
+    });
+
+    container.addEventListener('mouseleave', () => {
+        container.style.borderColor = 'transparent';
+        container.querySelectorAll('.resize-handle').forEach(handle => {
+            handle.style.display = 'none';
+        });
+    });
+
+    // Add crop button
+    const cropBtn = document.createElement('button');
+    cropBtn.innerHTML = '✂️';
+    cropBtn.className = 'image-crop-btn';
+    cropBtn.style.cssText = `
+        position: absolute;
+        top: -12px;
+        right: -12px;
+        width: 24px;
+        height: 24px;
+        border: none;
+        border-radius: 50%;
+        background: var(--primary-blue);
+        color: white;
+        font-size: 10px;
+        cursor: pointer;
+        display: none;
+        z-index: 11;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    `;
+
+    cropBtn.addEventListener('click', () => {
+        openImageCropModal(img);
+    });
+
+    container.appendChild(cropBtn);
+
+    // Show crop button on hover
+    container.addEventListener('mouseenter', () => {
+        cropBtn.style.display = 'block';
+    });
+
+    container.addEventListener('mouseleave', () => {
+        cropBtn.style.display = 'none';
+    });
+    } catch (error) {
+        console.error('Error making image resizable:', error);
+        // If error occurs, at least ensure image is visible
+        if (img) {
+            img.style.maxWidth = '100%';
+            img.style.height = 'auto';
+        }
+    }
+}
+
+function openImageCropModal(img) {
+    // Create a temporary crop modal for the editor
+    const modal = document.createElement('div');
+    modal.className = 'image-crop-modal';
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+    `;
+
+    const cropContainer = document.createElement('div');
+    cropContainer.style.cssText = `
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        max-width: 90%;
+        max-height: 90%;
+        overflow: auto;
+    `;
+
+    const title = document.createElement('h3');
+    title.textContent = 'Crop Image';
+    title.style.marginBottom = '15px';
+
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Set canvas size
+    const maxSize = 500;
+    const scale = Math.min(maxSize / img.naturalWidth, maxSize / img.naturalHeight);
+    canvas.width = img.naturalWidth * scale;
+    canvas.height = img.naturalHeight * scale;
+    
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+    const buttonContainer = document.createElement('div');
+    buttonContainer.style.cssText = `
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+        justify-content: flex-end;
+    `;
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.className = 'btn-secondary';
+    cancelBtn.onclick = () => document.body.removeChild(modal);
+
+    const applyBtn = document.createElement('button');
+    applyBtn.textContent = 'Apply Crop';
+    applyBtn.className = 'btn-primary';
+    applyBtn.onclick = () => {
+        // For now, just close modal - crop functionality can be enhanced later
+        document.body.removeChild(modal);
+    };
+
+    buttonContainer.appendChild(cancelBtn);
+    buttonContainer.appendChild(applyBtn);
+
+    cropContainer.appendChild(title);
+    cropContainer.appendChild(canvas);
+    cropContainer.appendChild(buttonContainer);
+    modal.appendChild(cropContainer);
+
+    document.body.appendChild(modal);
+}
+
 // Authentication
 function handleLogin(e) {
     e.preventDefault();
@@ -403,6 +1117,9 @@ function showMainApp() {
 function showAddFolderModal() {
     document.getElementById('folderName').value = '';
     folderModal.classList.remove('hidden');
+    
+    // Setup modal controls
+    setupModalControls(folderModal);
 }
 
 function hideFolderModal() {
@@ -520,6 +1237,7 @@ function showNoteViewModal(noteId) {
     if (!note) return;
     
     currentViewingNote = noteId;
+    console.log('Set currentViewingNote to:', currentViewingNote, 'type:', typeof currentViewingNote);
     
     // Set title
     document.getElementById('viewNoteTitle').textContent = note.title;
@@ -537,6 +1255,15 @@ function showNoteViewModal(noteId) {
         contentElement.innerHTML = '<p style="color: #999; font-style: italic;">No content</p>';
     }
     
+    // Store original content for search functionality
+    storeOriginalContent();
+    
+    // Clear any previous search
+    clearSearchAndRestore();
+    
+    // Setup search listeners
+    setupSearchListeners();
+    
     // Set meta info
     const folder = note.folderId ? storage.folders.find(f => f.id === note.folderId) : null;
     const folderName = folder ? folder.name : '';
@@ -549,6 +1276,12 @@ function showNoteViewModal(noteId) {
     
     noteViewModal.classList.remove('hidden');
     
+    // Setup modal controls
+    setupModalControls(noteViewModal);
+    
+    // Setup search functionality
+    setupSearchListeners();
+    
     // Update navigation button states
     updateNavigationButtons();
 }
@@ -557,8 +1290,18 @@ function hideNoteViewModal() {
     // Stop all videos before closing modal
     stopAllVideos();
     
-    noteViewModal.classList.add('hidden');
-    currentViewingNote = null;
+    // Clear search when closing modal
+    clearSearchAndRestore();
+    
+    // Add closing animation
+    noteViewModal.classList.add('closing');
+    
+    // Wait for animation to complete before hiding
+    setTimeout(() => {
+        noteViewModal.classList.add('hidden');
+        noteViewModal.classList.remove('closing', 'fullscreen', 'minimized');
+        currentViewingNote = null;
+    }, 300); // Match animation duration
 }
 
 // Function to stop all embedded videos in the note preview
@@ -683,9 +1426,25 @@ function showAddNoteModal() {
 }
 
 function showEditNoteModal(noteId) {
-    const note = storage.notes.find(n => n.id === noteId);
-    if (!note) return;
+    console.log('showEditNoteModal called with noteId:', noteId, 'type:', typeof noteId);
+    console.log('Available notes in storage:', storage.notes.length, 'notes');
+    console.log('Storage notes IDs:', storage.notes.map(n => ({id: n.id, type: typeof n.id, title: n.title})));
     
+    // Ensure noteId is treated as string for comparison
+    const targetId = String(noteId);
+    const note = storage.notes.find(n => String(n.id) === targetId);
+    
+    if (!note) {
+        console.error('Note not found:', noteId, 'Available notes:', storage.notes.map(n => ({id: n.id, title: n.title})));
+        showAppleStyleAlert({
+            title: 'Error',
+            message: 'Note not found. Please try again.',
+            type: 'error'
+        });
+        return;
+    }
+    
+    console.log('Found note to edit:', note.title, 'with ID:', note.id);
     currentEditingNote = noteId;
     hasUnsavedChanges = false;
     
@@ -705,12 +1464,19 @@ function showEditNoteModal(noteId) {
     if (quillEditor) {
         if (note.content) {
             // Set HTML content directly to Quill
+            console.log('Setting content to Quill editor:', note.content.substring(0, 100) + '...');
             quillEditor.root.innerHTML = note.content;
             document.getElementById('noteContent').value = note.content;
+            console.log('Content set, processing images...');
+            // Process images after content is set
+            setTimeout(() => processExistingImages(), 100);
         } else {
+            console.log('No content to set, clearing editor');
             quillEditor.setContents([]);
             document.getElementById('noteContent').value = '';
         }
+    } else {
+        console.error('quillEditor not found!');
     }
     
     // Show image preview if exists
@@ -719,8 +1485,65 @@ function showEditNoteModal(noteId) {
     } else {
         clearImagePreview();
     }
-    
+    // Show modal
+    console.log('Showing edit modal (noteModal)');
     noteModal.classList.remove('hidden');
+    
+    // Setup modal controls with extra debugging for noteModal
+    console.log('About to setup controls for noteModal');
+    const allButtons = noteModal.querySelectorAll('.macos-btn');
+    console.log('All macOS buttons found:', allButtons.length);
+    allButtons.forEach((btn, index) => {
+        console.log(`Button ${index}:`, btn.className, btn.id, btn.title);
+    });
+    
+    setupModalControls(noteModal);
+}
+
+// Process existing images in the editor content
+function processExistingImages() {
+    console.log('processExistingImages called - using safe mode');
+    if (!quillEditor) {
+        console.error('No quillEditor found');
+        return;
+    }
+    
+    const editor = quillEditor.root;
+    const images = editor.querySelectorAll('img');
+    console.log(`Found ${images.length} images in editor content`);
+    
+    images.forEach((img, index) => {
+        console.log(`Processing image ${index + 1}:`, img.src ? img.src.substring(0, 50) + '...' : 'no src');
+        
+        // Make sure image is visible and properly styled
+        img.style.display = '';
+        img.style.maxWidth = '100%';
+        img.style.height = 'auto';
+        img.style.borderRadius = '8px';
+        img.style.margin = '8px 0';
+        img.style.cursor = 'pointer';
+        img.style.transition = 'transform 0.2s ease';
+        
+        // Mark as processed
+        img.classList.add('resizable-processed');
+        
+        // Add click handler for resize modal
+        img.addEventListener('click', function(e) {
+            e.preventDefault();
+            openImageResizeModal(this);
+        });
+        
+        // Add hover effect
+        img.addEventListener('mouseenter', function() {
+            this.style.transform = 'scale(1.02)';
+        });
+        
+        img.addEventListener('mouseleave', function() {
+            this.style.transform = 'scale(1)';
+        });
+        
+        console.log('Applied safe styling and resize handler to existing image');
+    });
 }
 
 // Confirm before closing modal with unsaved changes
@@ -753,20 +1576,27 @@ function forceCloseModal() {
 }
 
 function hideNoteModal() {
-    noteModal.classList.add('hidden');
-    currentEditingNote = null;
-    hasUnsavedChanges = false;
-    originalNoteData = null;
+    // Add closing animation
+    noteModal.classList.add('closing');
     
-    // Clear form
-    noteForm.reset();
-    modalTitle.textContent = 'Add Note';
-    
-    // Clear Quill editor
-    if (quillEditor) {
-        quillEditor.setContents([]);
-        document.getElementById('noteContent').value = '';
-    }
+    // Wait for animation to complete before hiding
+    setTimeout(() => {
+        noteModal.classList.add('hidden');
+        noteModal.classList.remove('closing', 'fullscreen', 'minimized');
+        currentEditingNote = null;
+        hasUnsavedChanges = false;
+        originalNoteData = null;
+        
+        // Clear form
+        noteForm.reset();
+        modalTitle.textContent = 'Add Note';
+        
+        // Clear Quill editor
+        if (quillEditor) {
+            quillEditor.setContents([]);
+            document.getElementById('noteContent').value = '';
+        }
+    }, 300); // Match animation duration
     
     clearImagePreview();
 }
@@ -861,12 +1691,158 @@ function handleImageUpload(e) {
         });
         return;
     }
+
+    // Show recommendation and process image
+    showImageSizeRecommendation();
     
     const reader = new FileReader();
     reader.onload = function(event) {
-        showCropModal(event.target.result);
+        processImageWithAutoResize(event.target.result);
     };
     reader.readAsDataURL(file);
+}
+
+// Image processing constants
+const RECOMMENDED_IMAGE_SIZE = {
+    width: 800,
+    height: 600,
+    displayText: '800×600px'
+};
+
+function showImageSizeRecommendation() {
+    showCustomAlert({
+        title: 'Image Size Recommendation',
+        message: `For optimal display in note cards, we recommend images with dimensions up to ${RECOMMENDED_IMAGE_SIZE.displayText}. Larger images will be automatically resized to fit.`,
+        type: 'info'
+    });
+}
+
+function processImageWithAutoResize(imageSrc) {
+    const img = new Image();
+    img.onload = function() {
+        const { width, height } = img;
+        
+        // Check if image needs resizing
+        if (width > RECOMMENDED_IMAGE_SIZE.width || height > RECOMMENDED_IMAGE_SIZE.height) {
+            // Auto-resize the image
+            const resizedImageSrc = resizeImageToRecommended(img);
+            showCropModal(resizedImageSrc);
+        } else {
+            // Image is within recommended size, proceed normally
+            showCropModal(imageSrc);
+        }
+    };
+    img.src = imageSrc;
+}
+
+function resizeImageToRecommended(img) {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    const { width: originalWidth, height: originalHeight } = img;
+    const maxWidth = RECOMMENDED_IMAGE_SIZE.width;
+    const maxHeight = RECOMMENDED_IMAGE_SIZE.height;
+    
+    // Calculate new dimensions maintaining aspect ratio
+    let newWidth, newHeight;
+    const aspectRatio = originalWidth / originalHeight;
+    
+    if (originalWidth > originalHeight) {
+        // Landscape
+        newWidth = Math.min(maxWidth, originalWidth);
+        newHeight = newWidth / aspectRatio;
+        
+        if (newHeight > maxHeight) {
+            newHeight = maxHeight;
+            newWidth = newHeight * aspectRatio;
+        }
+    } else {
+        // Portrait or square
+        newHeight = Math.min(maxHeight, originalHeight);
+        newWidth = newHeight * aspectRatio;
+        
+        if (newWidth > maxWidth) {
+            newWidth = maxWidth;
+            newHeight = newWidth / aspectRatio;
+        }
+    }
+    
+    canvas.width = newWidth;
+    canvas.height = newHeight;
+    
+    // Draw resized image
+    ctx.drawImage(img, 0, 0, newWidth, newHeight);
+    
+    return canvas.toDataURL('image/jpeg', 0.9);
+}
+
+function processImageForInlineEditor(imageSrc, range) {
+    const img = new Image();
+    img.onload = function() {
+        const { width, height } = img;
+        
+        let finalImageSrc = imageSrc;
+        
+        // Check if image needs resizing for inline editor
+        if (width > RECOMMENDED_IMAGE_SIZE.width || height > RECOMMENDED_IMAGE_SIZE.height) {
+            // Auto-resize the image
+            finalImageSrc = resizeImageToRecommended(img);
+        }
+        
+        // Insert directly into editor
+        try {
+            quillEditor.insertEmbed(range.index, 'image', finalImageSrc);
+            quillEditor.setSelection(range.index + 1);
+            
+            // Debug: Check if image was inserted
+            console.log('Image inserted. Editor contents:', quillEditor.getContents());
+        } catch (error) {
+            console.error('Error inserting image:', error);
+            // Fallback: insert as HTML
+            const imgHtml = `<img src="${finalImageSrc}" style="max-width: 100%; height: auto; border-radius: 8px; margin: 8px 0;">`;
+            quillEditor.clipboard.dangerouslyPasteHTML(range.index, imgHtml);
+        }
+        
+        // Setup resize functionality for the new image with delay
+        setTimeout(() => {
+            try {
+                // Use a safer approach - find images and make them resizable without triggering Quill events
+                const editorImages = document.querySelectorAll('.ql-editor img:not(.resizable-processed)');
+                console.log('Images found after insert:', editorImages.length);
+                
+                editorImages.forEach(img => {
+                    // Mark as processed to avoid double processing
+                    img.classList.add('resizable-processed');
+                    
+                    // Apply basic styling
+                    img.style.maxWidth = '100%';
+                    img.style.height = 'auto';
+                    img.style.borderRadius = '8px';
+                    img.style.margin = '8px 0';
+                    img.style.cursor = 'pointer';
+                    img.style.transition = 'transform 0.2s ease';
+                    
+                    // Add click handler for resize modal
+                    img.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        openImageResizeModal(this);
+                    });
+                    
+                    // Add hover effect
+                    img.addEventListener('mouseenter', function() {
+                        this.style.transform = 'scale(1.02)';
+                    });
+                    
+                    img.addEventListener('mouseleave', function() {
+                        this.style.transform = 'scale(1)';
+                    });
+                });
+            } catch (error) {
+                console.error('Error setting up image resize:', error);
+            }
+        }, 200);
+    };
+    img.src = imageSrc;
 }
 
 function showCropModal(imageSrc) {
@@ -874,6 +1850,9 @@ function showCropModal(imageSrc) {
     currentImage.onload = function() {
         setupCropCanvas();
         cropModal.classList.remove('hidden');
+        
+        // Setup modal controls
+        setupModalControls(cropModal);
     };
     currentImage.src = imageSrc;
 }
@@ -1341,12 +2320,212 @@ function showCustomAlert(options = {}) {
         okText = 'OK'
     } = options;
 
-    return showCustomConfirm({
+    return showAppleStyleAlert({
         title,
         message,
         type,
-        okText,
-        cancelText: null // Hide cancel button for alerts
+        okText
+    });
+}
+
+function showAppleStyleAlert(options = {}) {
+    return new Promise((resolve) => {
+        const {
+            title = 'Information',
+            message = 'Please note this information.',
+            type = 'info',
+            okText = 'OK'
+        } = options;
+
+        // Create modal overlay with macOS styling
+        const overlay = document.createElement('div');
+        overlay.className = 'macos-alert-overlay';
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.25);
+            backdrop-filter: blur(40px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            animation: fadeIn 0.2s ease;
+        `;
+
+        // Create alert container with macOS design
+        const alertContainer = document.createElement('div');
+        alertContainer.className = 'macos-alert-container';
+        alertContainer.style.cssText = `
+            max-width: 420px;
+            border-radius: 12px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(255, 255, 255, 0.1);
+            animation: slideIn 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            text-align: center;
+        `;
+
+        // Get icon and styling based on type
+        let iconClass, buttonClass;
+        switch (type) {
+            case 'warning':
+                iconClass = 'fas fa-exclamation-triangle';
+                buttonClass = 'btn-warning';
+                break;
+            case 'success':
+                iconClass = 'fas fa-check-circle';
+                buttonClass = 'btn-success';
+                break;
+            case 'info':
+                iconClass = 'fas fa-info-circle';
+                buttonClass = 'btn-primary';
+                break;
+            case 'danger':
+                iconClass = 'fas fa-exclamation-triangle';
+                buttonClass = 'btn-danger';
+                break;
+            default:
+                iconClass = 'fas fa-info-circle';
+                buttonClass = 'btn-primary';
+        }
+
+        // Create content with macOS structure
+        alertContainer.innerHTML = `
+            <div style="
+                background: none;
+                color: #1d1d1f;
+                padding: 24px 24px 8px 24px;
+                text-align: center;
+                position: relative;
+            ">
+                <div style="
+                    font-size: 3rem;
+                    margin-bottom: 16px;
+                    opacity: 1;
+                    color: ${type === 'warning' ? '#FF9500' : type === 'success' ? '#34C759' : type === 'danger' ? '#FF3B30' : '#007AFF'};
+                ">
+                    <i class="${iconClass}"></i>
+                </div>
+                <h3 style="
+                    margin: 0;
+                    font-size: 17px;
+                    font-weight: 600;
+                    letter-spacing: -0.4px;
+                    line-height: 1.3;
+                    color: #1d1d1f;
+                    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', Inter, 'Segoe UI', sans-serif;
+                ">${title}</h3>
+            </div>
+            <div style="
+                padding: 8px 24px 24px 24px;
+                text-align: center;
+                background: none;
+            ">
+                <p style="
+                    margin: 0 0 24px 0;
+                    color: #86868b;
+                    font-size: 13px;
+                    line-height: 1.5;
+                    white-space: pre-line;
+                    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', Inter, 'Segoe UI', sans-serif;
+                    font-weight: 400;
+                    letter-spacing: -0.08px;
+                ">${message}</p>
+                <button class="macos-alert-ok ${buttonClass}" style="
+                    padding: 8px 20px;
+                    border: none;
+                    border-radius: 6px;
+                    font-size: 13px;
+                    font-weight: 500;
+                    cursor: pointer;
+                    transition: all 0.15s ease;
+                    min-width: 80px;
+                    text-transform: none;
+                    letter-spacing: -0.08px;
+                    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', Inter, 'Segoe UI', sans-serif;
+                    height: 32px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    margin: 0 auto;
+                    ${type === 'warning' ? 'background: #FF9500; color: white;' : 
+                      type === 'success' ? 'background: #34C759; color: white;' : 
+                      type === 'danger' ? 'background: #FF3B30; color: white;' : 
+                      'background: #007AFF; color: white;'}
+                ">${okText}</button>
+            </div>
+        `;
+
+        overlay.appendChild(alertContainer);
+        document.body.appendChild(overlay);
+
+        // Add macOS specific CSS animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            @keyframes slideIn {
+                from { 
+                    opacity: 0;
+                    transform: scale(0.92) translateY(-20px);
+                }
+                to { 
+                    opacity: 1;
+                    transform: scale(1) translateY(0);
+                }
+            }
+            .macos-alert-ok:hover {
+                opacity: 0.9;
+                transform: none;
+                box-shadow: none;
+            }
+            .macos-alert-ok:active {
+                transform: scale(0.98);
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Event handlers
+        const okButton = alertContainer.querySelector('.macos-alert-ok');
+        
+        const handleOk = () => {
+            overlay.style.animation = 'fadeIn 0.2s ease reverse';
+            alertContainer.style.animation = 'slideIn 0.2s ease reverse';
+            setTimeout(() => {
+                document.body.removeChild(overlay);
+                document.head.removeChild(style);
+                resolve(true);
+            }, 200);
+        };
+
+        okButton.addEventListener('click', handleOk);
+        
+        // Close on overlay click
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                handleOk();
+            }
+        });
+
+        // Close on Escape key
+        const handleKeydown = (e) => {
+            if (e.key === 'Escape') {
+                document.removeEventListener('keydown', handleKeydown);
+                handleOk();
+            }
+        };
+        document.addEventListener('keydown', handleKeydown);
+
+        // Focus the OK button
+        setTimeout(() => okButton.focus(), 100);
     });
 }
 
@@ -1441,3 +2620,125 @@ function createSampleData() {
 
 // Create sample data on first load
 createSampleData();
+
+// Search functionality for note view
+let searchResults = [];
+let currentSearchIndex = -1;
+let originalNoteContent = '';
+
+// Store original content when note is opened
+function storeOriginalContent() {
+    const noteContent = document.getElementById('viewNoteContent');
+    originalNoteContent = noteContent.innerHTML;
+}
+
+function clearSearchAndRestore() {
+    const noteContent = document.getElementById('viewNoteContent');
+    const searchInput = document.getElementById('noteSearchInput');
+    const searchInfo = document.getElementById('searchInfo');
+    
+    if (originalNoteContent) {
+        noteContent.innerHTML = originalNoteContent;
+    }
+    
+    if (searchInput) {
+        searchInput.value = '';
+    }
+    
+    if (searchInfo) {
+        searchInfo.classList.remove('visible', 'no-results');
+    }
+    
+    searchResults = [];
+    currentSearchIndex = -1;
+}
+
+function performSearch(query) {
+    const noteContent = document.getElementById('viewNoteContent');
+    const searchInfo = document.getElementById('searchInfo');
+    
+    if (!query.trim()) {
+        // Restore original content if search is empty
+        if (originalNoteContent) {
+            noteContent.innerHTML = originalNoteContent;
+        }
+        searchResults = [];
+        currentSearchIndex = -1;
+        searchInfo.classList.remove('visible', 'no-results');
+        return;
+    }
+    
+    // Use original content as base for search
+    const content = originalNoteContent || noteContent.innerHTML;
+    
+    // Create regex for highlighting - escape special regex characters
+    const regex = new RegExp(`(${escapeRegExp(query)})`, 'gi');
+    const highlightedContent = content.replace(regex, '<mark class="search-highlight">$1</mark>');
+    
+    noteContent.innerHTML = highlightedContent;
+    
+    // Update search results
+    searchResults = noteContent.querySelectorAll('.search-highlight');
+    
+    // Show search info
+    if (searchResults.length > 0) {
+        currentSearchIndex = 0;
+        highlightCurrentResult();
+        searchInfo.textContent = `Found ${searchResults.length} result${searchResults.length > 1 ? 's' : ''} for "${query}"`;
+        searchInfo.classList.add('visible');
+        searchInfo.classList.remove('no-results');
+    } else {
+        searchInfo.textContent = `No results found for "${query}"`;
+        searchInfo.classList.add('visible', 'no-results');
+        currentSearchIndex = -1;
+    }
+}
+
+function highlightCurrentResult() {
+    // Remove previous current highlight
+    document.querySelectorAll('.search-highlight.current').forEach(el => {
+        el.classList.remove('current');
+    });
+    
+    if (searchResults.length > 0 && currentSearchIndex >= 0) {
+        const current = searchResults[currentSearchIndex];
+        current.classList.add('current');
+        current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+}
+
+function escapeRegExp(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// Setup search listeners - only called when modal opens
+function setupSearchListeners() {
+    const searchInput = document.getElementById('noteSearchInput');
+    
+    if (searchInput) {
+        // Remove any existing listeners to prevent duplicates
+        searchInput.removeEventListener('input', handleSearchInput);
+        searchInput.removeEventListener('keydown', handleSearchKeydown);
+        
+        // Add new listeners
+        searchInput.addEventListener('input', handleSearchInput);
+        searchInput.addEventListener('keydown', handleSearchKeydown);
+    }
+}
+
+function handleSearchInput(e) {
+    performSearch(e.target.value);
+}
+
+function handleSearchKeydown(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        if (searchResults.length > 0) {
+            currentSearchIndex = (currentSearchIndex + 1) % searchResults.length;
+            highlightCurrentResult();
+        }
+    } else if (e.key === 'Escape') {
+        clearSearchAndRestore();
+        e.target.blur();
+    }
+}
