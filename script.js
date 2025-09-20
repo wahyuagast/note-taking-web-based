@@ -95,7 +95,9 @@ function setupEventListeners() {
     loginForm.addEventListener('submit', handleLogin);
     logoutBtn.addEventListener('click', handleLogout);
     
-    // Search - removed duplicate listener, will be set up in modal
+    // Main Search for notes
+    searchInput.addEventListener('input', handleMainSearchInput);
+    searchInput.addEventListener('keydown', handleMainSearchKeydown);
     
     // Folders
     addFolderBtn.addEventListener('click', showAddFolderModal);
@@ -2740,5 +2742,25 @@ function handleSearchKeydown(e) {
     } else if (e.key === 'Escape') {
         clearSearchAndRestore();
         e.target.blur();
+    }
+}
+
+// Main search handlers for notes list
+function handleMainSearchInput(e) {
+    renderNotes(); // Re-render notes with current search term
+}
+
+function handleMainSearchKeydown(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        // Focus first note if any results
+        const noteCards = document.querySelectorAll('.note-card');
+        if (noteCards.length > 0) {
+            noteCards[0].focus();
+        }
+    } else if (e.key === 'Escape') {
+        e.target.value = '';
+        e.target.blur();
+        renderNotes(); // Clear search and re-render
     }
 }
