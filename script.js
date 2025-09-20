@@ -2747,7 +2747,7 @@ function handleSearchKeydown(e) {
 
 // Main search handlers for notes list
 function handleMainSearchInput(e) {
-    renderNotes(); // Re-render notes with current search term
+    loadNotes(); // Re-load and display notes with current search term
 }
 
 function handleMainSearchKeydown(e) {
@@ -2761,6 +2761,6 @@ function handleMainSearchKeydown(e) {
     } else if (e.key === 'Escape') {
         e.target.value = '';
         e.target.blur();
-        renderNotes(); // Clear search and re-render
+        loadNotes(); // Clear search and re-load notes
     }
 }
